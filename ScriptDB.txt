@@ -1,0 +1,194 @@
+-- 1. Crear la base de datos 
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'RestauranteDB')
+BEGIN
+    CREATE DATABASE RestauranteDB;
+END 
+GO
+
+USE RestauranteDB;
+GO
+
+-- =========================
+-- USUARIOS
+-- =========================
+CREATE TABLE Usuarios (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL, -- Cambiado a NVARCHAR 
+    Email NVARCHAR(150) NOT NULL UNIQUE, -- Cambiado a NVARCHAR 
+    Password NVARCHAR(255) NOT NULL, -- Renombrado de PasswordHash a Password 
+    Telefono NVARCHAR(20),
+    Direccion NVARCHAR(255),
+    Rol NVARCHAR(10) NOT NULL DEFAULT 'Cliente' CHECK (Rol IN ('Admin', 'Cliente')),
+    FechaRegistro DATETIME NOT NULL DEFAULT GETDATE(), 
+    Activo BIT NOT NULL DEFAULT 1 
+);
+
+-- =========================
+-- SEGURIDAD (Nueva Tabla Solicitada)
+-- =========================
+CREATE TABLE UsuariosSeguridad (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL, -- ID del usuario relacionado
+    PasswordHash NVARCHAR(MAX) NOT NULL, -- Password encriptado
+    Salt NVARCHAR(MAX) NOT NULL, -- Salt para la encriptación
+    FechaUltimoCambio DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Seguridad_Usuarios FOREIGN KEY (UsuarioId) 
+        REFERENCES Usuarios(Id) ON DELETE CASCADE
+);
+
+-- =========================
+-- CATEGORIAS
+-- =========================
+CREATE TABLE Categorias (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL, -- Cambiado a NVARCHAR 
+    Descripcion NVARCHAR(255), -- Cambiado a NVARCHAR 
+    Activo BIT NOT NULL DEFAULT 1 
+);
+
+-- =========================
+-- PRODUCTOS
+-- =========================
+CREATE TABLE Productos (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(150) NOT NULL, 
+    Descripcion NVARCHAR(MAX), -- Cambiado a NVARCHAR(MAX) para soportar texto largo 
+    Precio DECIMAL(10,2) NOT NULL, 
+    ImagenUrl NVARCHAR(255), 
+    CategoriaId INT NOT NULL, 
+    Disponible BIT NOT NULL DEFAULT 1, 
+    FechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_Productos_Categorias FOREIGN KEY (CategoriaId) 
+        REFERENCES Categorias(Id) ON DELETE CASCADE 
+);
+
+-- =========================
+-- CUPONES
+-- =========================
+CREATE TABLE Cupones (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Codigo NVARCHAR(50) NOT NULL UNIQUE, 
+    TipoDescuento NVARCHAR(15) NOT NULL CHECK (TipoDescuento IN ('Porcentaje', 'Fijo')), 
+    ValorDescuento DECIMAL(10,2) NOT NULL, 
+    FechaInicio DATETIME NOT NULL, 
+    FechaFin DATETIME NOT NULL, 
+    UsoMaximo INT NOT NULL,
+    VecesUsado INT NOT NULL DEFAULT 0, 
+    Activo BIT NOT NULL DEFAULT 1 
+);
+
+-- =========================
+-- PEDIDOS
+-- =========================
+CREATE TABLE Pedidos (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL, 
+    FechaPedido DATETIME NOT NULL DEFAULT GETDATE(), 
+    TipoPedido NVARCHAR(15) NOT NULL CHECK (TipoPedido IN ('Recogida', 'Domicilio')), 
+    Estado NVARCHAR(20) NOT NULL DEFAULT 'PendientePago' 
+        CHECK (Estado IN ('PendientePago', 'EnPreparacion', 'Listo', 'Entregado', 'Cancelado')), 
+    EstadoPago NVARCHAR(15) NOT NULL DEFAULT 'Pendiente' 
+        CHECK (EstadoPago IN ('Pendiente', 'Pagado', 'Rechazado')), 
+    MetodoPago NVARCHAR(50), 
+    Subtotal DECIMAL(10,2) NOT NULL, 
+    Descuento DECIMAL(10,2) NOT NULL DEFAULT 0, 
+    Total DECIMAL(10,2) NOT NULL,
+    DireccionEntrega NVARCHAR(255), 
+    CuponId INT, 
+    CONSTRAINT FK_Pedidos_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE CASCADE, 
+    CONSTRAINT FK_Pedidos_Cupones FOREIGN KEY (CuponId) REFERENCES Cupones(Id) ON DELETE SET NULL 
+);
+
+-- =========================
+-- DETALLE PEDIDO
+-- =========================
+CREATE TABLE DetallePedido (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    PedidoId INT NOT NULL, 
+    ProductoId INT NOT NULL, 
+    Cantidad INT NOT NULL, 
+    PrecioUnitario DECIMAL(10,2) NOT NULL, 
+    CONSTRAINT FK_DetallePedido_Pedidos FOREIGN KEY (PedidoId) REFERENCES Pedidos(Id) ON DELETE CASCADE, 
+    CONSTRAINT FK_DetallePedido_Productos FOREIGN KEY (ProductoId) REFERENCES Productos(Id) ON DELETE CASCADE 
+);
+
+-- =========================
+-- PAGOS
+-- =========================
+CREATE TABLE Pagos (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    PedidoId INT NOT NULL, 
+    Metodo NVARCHAR(20) NOT NULL DEFAULT 'TarjetaSimulada', 
+    Estado NVARCHAR(15) NOT NULL CHECK (Estado IN ('Pendiente', 'Aprobado', 'Rechazado')), 
+    Ultimos4Digitos NVARCHAR(4), 
+    ReferenciaInterna NVARCHAR(100) NOT NULL, 
+    IntentoNumero INT NOT NULL, 
+    FechaCreacion DATETIME NOT NULL DEFAULT GETDATE(), 
+    FechaConfirmacion DATETIME NULL, 
+    MensajeError NVARCHAR(255), 
+    IpUsuario NVARCHAR(45), 
+    CONSTRAINT FK_Pagos_Pedidos FOREIGN KEY (PedidoId) REFERENCES Pedidos(Id) ON DELETE CASCADE 
+);
+
+-- =========================
+-- MESAS
+-- =========================
+CREATE TABLE Mesas (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    NumeroMesa INT NOT NULL UNIQUE, 
+    Capacidad INT NOT NULL, 
+    Activa BIT NOT NULL DEFAULT 1 
+);
+
+-- =========================
+-- RESERVAS
+-- =========================
+CREATE TABLE Reservas (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL, 
+    MesaId INT NOT NULL, 
+    FechaReserva DATETIME NOT NULL, 
+    NumeroPersonas INT NOT NULL, 
+    Estado NVARCHAR(15) NOT NULL DEFAULT 'Pendiente' 
+        CHECK (Estado IN ('Pendiente', 'Confirmada', 'Cancelada', 'Expirada')), 
+    FechaCreacion DATETIME NOT NULL DEFAULT GETDATE(), 
+    FechaConfirmacion DATETIME NULL, 
+    CONSTRAINT FK_Reservas_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE CASCADE, 
+    CONSTRAINT FK_Reservas_Mesas FOREIGN KEY (MesaId) REFERENCES Mesas(Id) ON DELETE CASCADE 
+);
+
+-- =========================
+-- HORARIOS
+-- =========================
+CREATE TABLE Horarios (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    DiaSemana INT NOT NULL, 
+    HoraApertura TIME NOT NULL, 
+    HoraCierre TIME NOT NULL, 
+    Activo BIT NOT NULL DEFAULT 1 
+);
+
+-- =========================
+-- VALORACIONES
+-- =========================
+CREATE TABLE Valoraciones (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL, 
+    Puntuacion INT NOT NULL CHECK (Puntuacion BETWEEN 1 AND 5), 
+    Comentario NVARCHAR(MAX), 
+    Fecha DATETIME NOT NULL DEFAULT GETDATE(), 
+    Visible BIT NOT NULL DEFAULT 1, 
+    CONSTRAINT FK_Valoraciones_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE CASCADE 
+);
+
+-- =========================
+-- IMAGENES GALERIA
+-- =========================
+CREATE TABLE ImagenesGaleria (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UrlImagen NVARCHAR(255) NOT NULL, 
+    Descripcion NVARCHAR(255), 
+    Tipo NVARCHAR(10) NOT NULL CHECK (Tipo IN ('Local', 'Plato')), 
+    Activa BIT NOT NULL DEFAULT 1 
+);
+GO 
