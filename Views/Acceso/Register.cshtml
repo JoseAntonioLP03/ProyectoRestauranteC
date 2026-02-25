@@ -1,0 +1,61 @@
+﻿@model ProyectoRestauranteC_.Models.Usuario
+
+@{
+    ViewData["Title"] = "Registro de Nuevo Cliente";
+    Layout = "_LayoutVacio";
+}
+
+<div class="absolute top-8 left-8">
+    <a asp-controller="Home" asp-action="Index" 
+       class="flex items-center gap-2 text-gray-400 hover:text-[#E31E24] transition-all group">
+        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider">Inicio</span>
+    </a>
+</div>
+
+<div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100 overflow-y-auto max-h-[90vh]">
+        <h2 class="text-3xl font-black text-center text-black mb-2 uppercase tracking-tighter">
+            Únete a <span class="text-[#E31E24]">TOPMEAL</span>
+        </h2>
+        <p class="text-center text-gray-500 mb-8 text-sm">Disfruta del sabor real en cada pedido</p>
+
+        <form asp-action="Register" method="post" class="space-y-4">
+
+            <div>
+                <label asp-for="Nombre" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+                <input asp-for="Nombre" required class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="Juan Pérez">
+            </div>
+
+            <div>
+                <label asp-for="Email" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
+                <input asp-for="Email" type="email" required class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="hola@topmeal.com">
+            </div>
+
+            <div>
+                <label asp-for="Password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Contraseña</label>
+                <input asp-for="Password" type="password" required class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="••••••••">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="Telefono" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
+                    <input asp-for="Telefono" class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="600 000 000">
+                </div>
+                <div>
+                    <label asp-for="Direccion" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
+                    <input asp-for="Direccion" class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="Calle Ejemplo 123">
+                </div>
+            </div>
+
+            <div class="pt-6 space-y-4">
+                <button type="submit" class="w-full bg-[#E31E24] text-white font-black py-4 rounded-xl hover:bg-black transition-all duration-300 shadow-lg shadow-red-200 uppercase tracking-widest text-sm">
+                    Crear mi cuenta
+                </button>
+                <a asp-action="Login" class="block text-center w-full text-gray-400 font-bold py-2 text-sm hover:text-black transition">
+                    Volver al inicio de sesión
+                </a>
+            </div>
+        </form>
+    </div>

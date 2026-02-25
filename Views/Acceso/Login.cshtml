@@ -1,0 +1,54 @@
+﻿@model ProyectoRestauranteC_.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_LayoutVacio";
+}
+
+<div class="absolute top-8 left-8">
+    <a asp-controller="Home" asp-action="Index" 
+       class="flex items-center gap-2 text-gray-400 hover:text-[#E31E24] transition-all group">
+        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider">Inicio</span>
+    </a>
+</div>
+
+<div class="bg-white p-10 rounded-2xl shadow-xl w-full max-w-sm border border-gray-100">
+
+        <h2 class="text-3xl font-black text-center text-black mb-8 uppercase tracking-tighter">
+            Bienvenido a <span class="text-[#E31E24]">TOPMEAL</span>
+        </h2>
+
+        <form asp-action="Login" method="post" class="space-y-6">
+
+            @if (ViewData["MENSAJE"] != null)
+            {
+                <div class="text-[#E31E24] text-xs font-bold bg-red-50 p-3 rounded-lg border border-red-100 text-center animate-pulse">
+                    @ViewData["MENSAJE"]
+                </div>
+            }
+
+            <div>
+                <label asp-for="Email" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Tu Email</label>
+                <input asp-for="Email" type="email" required class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-4 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="chef@topmeal.com">
+            </div>
+
+            <div>
+                <label asp-for="Password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Contraseña</label>
+                <input asp-for="Password" type="password" required class="w-full border-gray-200 bg-gray-50 rounded-xl px-4 py-4 focus:ring-2 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none transition placeholder:text-gray-300" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="w-full bg-black text-white font-black py-4 rounded-xl hover:bg-[#E31E24] transition-all duration-300 shadow-lg uppercase tracking-widest text-sm transform hover:-translate-y-1">
+                Entrar a la cocina
+            </button>
+
+            <p class="text-center text-sm text-gray-400 mt-8">
+                ¿Aún no tienes cuenta?
+                <a asp-action="Register" class="text-[#E31E24] font-black hover:underline ml-1">Regístrate gratis</a>
+            </p>
+
+        </form>
+    </div>
+</div>
