@@ -5,19 +5,18 @@ using ProyectoRestauranteC_.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession();
+
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
 
 builder.Services.AddDbContext<RestauranteContext>
     (options =>options.UseSqlServer(connectionString: builder.Configuration.GetConnectionString("RestauranteDB")));
 
 builder.Services.AddTransient<RepositoryUsuarios>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 
 var app = builder.Build();
 
@@ -37,6 +36,8 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

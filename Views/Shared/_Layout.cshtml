@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#FDFBF7] text-gray-900 font-sans flex flex-col min-h-screen">
+<body class="bg-[#FBF8F3] text-gray-900 font-sans flex flex-col min-h-screen">
 
     @* HEADER: Fondo crema claro con borde sutil *@
     <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
@@ -31,7 +31,7 @@
                     <a class="text-sm font-bold uppercase tracking-widest text-black hover:text-[#E31E24] transition"
                        asp-controller="Home" asp-action="Index">Inicio</a>
                     <a class="text-sm font-bold uppercase tracking-widest text-black hover:text-[#E31E24] transition"
-                       asp-controller="Home" asp-action="Privacy">La Carta</a>
+                       asp-controller="Menu" asp-action="Index">La Carta</a>
                 </div>
 
                 @* LADO DERECHO: Acceso de Usuarios *@
@@ -65,10 +65,12 @@
     </header>
 
     @* CONTENIDO PRINCIPAL *@
-    <div class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-        <main role="main">
-            @RenderBody()
-        </main>
+    <div class="flex-grow bg-[#FBF8F3]">
+        <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
     @* FOOTER: Elegante y minimalista *@
@@ -81,7 +83,7 @@
                 <p class="text-gray-400 text-sm mt-2 font-medium italic">Sabor real en cada pedido.</p>
             </div>
             <div class="md:text-right">
-                <p class="text-gray-500 text-xs uppercase tracking-widest">
+                <p class="text-gray-500 text-xs uppercase tracking-widest"> 
                     &copy; 2026 - Gourmet App Project - <a asp-controller="Home" asp-action="Privacy" class="hover:text-[#E31E24]">Privacidad</a>
                 </p>
             </div>

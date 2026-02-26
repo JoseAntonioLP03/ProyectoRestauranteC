@@ -16,7 +16,7 @@ namespace ProyectoRestauranteC_.Repositories
 
         public async Task RegisterUsuarioAsync(string nombre, string email, string password, string telefono, string direccion)
         {
-            // 1. Creamos el objeto Usuario principal
+            //Creamos el objeto Usuario 
             Usuario user = new Usuario();
             user.Nombre = nombre;
             user.Email = email;
@@ -55,10 +55,10 @@ namespace ProyectoRestauranteC_.Repositories
             }
 
             string salt = user.Seguridad.Salt;
-            string storedHash = user.Seguridad.PasswordHash;
+            string hashGuardado = user.Seguridad.PasswordHash;
             byte[] tempHashBytes = HelperEncriptar.EncryptPassword(password, salt);
-            string tempHash = Convert.ToBase64String(tempHashBytes);
-            if (tempHash == storedHash)
+            string hashActual = Convert.ToBase64String(tempHashBytes);
+            if (hashActual == hashGuardado)
             {
                 return user;
             }

@@ -12,5 +12,7 @@ namespace ProyectoRestauranteC_.Data
         
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<UsuarioSeguridad> UsuariosSeguridad { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<Productos> Productos { get; set; }
     }
 }
