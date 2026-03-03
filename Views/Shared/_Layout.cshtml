@@ -28,10 +28,21 @@
 
                 @* CENTRO: Enlaces de navegación en Negro *@
                 <div class="hidden md:flex space-x-10">
-                    <a class="text-sm font-bold uppercase tracking-widest text-black hover:text-[#E31E24] transition"
+                    @{
+                        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                        
+                        var isHome = currentController == "Home" && currentAction == "Index";
+                        var isCarta = currentController == "Menu" && currentAction == "Index";
+                        var isPedido = currentController == "Menu" && currentAction == "RealizarPedido";
+                    }
+                    
+                    <a class="text-sm font-bold uppercase tracking-widest @(isHome ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
                        asp-controller="Home" asp-action="Index">Inicio</a>
-                    <a class="text-sm font-bold uppercase tracking-widest text-black hover:text-[#E31E24] transition"
+                    <a class="text-sm font-bold uppercase tracking-widest @(isCarta ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
                        asp-controller="Menu" asp-action="Index">La Carta</a>
+                    <a class="text-sm font-bold uppercase tracking-widest @(isPedido ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
+                       asp-controller="Menu" asp-action="RealizarPedido">Realizar Pedido</a>
                 </div>
 
                 @* LADO DERECHO: Acceso de Usuarios *@

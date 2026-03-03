@@ -17,5 +17,11 @@ namespace ProyectoRestauranteC_.Controllers
             var categorias = await menuRepository.GetMenuCompletoAsync();
             return View(categorias);
         }
+
+        public async Task<IActionResult> RealizarPedido()
+        {
+            var categorias = await menuRepository.GetMenuCompletoAsync();
+            return View(categorias);
+        }
     }
 }

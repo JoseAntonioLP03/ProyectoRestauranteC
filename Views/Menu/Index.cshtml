@@ -4,13 +4,6 @@
     ViewData["Title"] = "Nuestra Carta";
 }
 
-@* 1. HEADER DE LA PÁGINA *@
-<div class="text-center mb-12 py-8 bg-gradient-to-b from-red-50/30 to-transparent">
-    <span class="text-[#E31E24] text-xs font-bold uppercase tracking-[0.4em] block mb-3">Descubre Nuestros Sabores</span>
-    <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">Nuestra <span class="text-[#E31E24]">Carta</span></h1>
-    <div class="w-16 h-0.5 bg-[#E31E24] mx-auto mt-4"></div>
-</div>
-
 @* 2. MINI MENÚ DE CATEGORÍAS (Sticky) *@
 <div class="sticky top-20 z-40 bg-white/98 backdrop-blur-md py-5 mb-10 shadow-sm border-t-2 border-[#E31E24]">
     <div class="container mx-auto px-4">
@@ -75,14 +68,9 @@
                             <div class="w-10 h-0.5 bg-gradient-to-r from-[#E31E24] to-transparent mb-2"></div>
 
                             @* Descripción *@
-                            <p class="text-gray-600 text-xs leading-relaxed mb-3 line-clamp-2">
+                            <p class="text-gray-600 text-xs leading-relaxed line-clamp-2">
                                 @(producto.Descripcion ?? "Delicioso plato preparado con ingredientes frescos.")
                             </p>
-
-                            @* Botón de Acción *@
-                            <button class="w-full bg-[#E31E24] text-white py-2 px-3 rounded-md text-xs font-medium uppercase tracking-wide hover:bg-[#c51a1f] transition-colors duration-300 active:scale-98 shadow-sm hover:shadow-md">
-                                Añadir al pedido
-                            </button>
                         </div>
                     </div>
                 }

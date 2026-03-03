@@ -1,0 +1,282 @@
+@model IEnumerable<ProyectoRestauranteC_.Models.Categoria>
+
+@{
+    ViewData["Title"] = "Realizar Pedido";
+}
+
+<div class="bg-white min-h-screen">
+
+    <div class="container mx-auto px-4 pb-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            @* COLUMNA IZQUIERDA: MENÚ (2/3 del ancho) *@
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                    @* Grid de categorías en dos columnas *@
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        @foreach (var categoria in Model)
+                        {
+                            <div class="space-y-3">
+                                @* Título de categoría con línea roja *@
+                                <div class="pb-2 mb-4 border-b-2 border-[#E31E24]">
+                                    <h2 class="text-lg font-bold text-gray-900">@categoria.Nombre</h2>
+                                </div>
+
+                                @* Lista de productos *@
+                                <div class="space-y-2">
+                                    @foreach (var producto in categoria.Productos.Where(p => p.Disponible))
+                                    {
+                                        <div class="border-2 border-gray-200 rounded-lg p-3 hover:border-[#E31E24] transition-colors cursor-pointer">
+                                            <div class="flex justify-between items-start gap-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <h3 class="text-sm font-semibold text-gray-900 mb-1">
+                                                        @producto.Nombre
+                                                    </h3>
+                                                    @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                                    {
+                                                        <p class="text-xs text-gray-500 line-clamp-1">@producto.Descripcion</p>
+                                                    }
+                                                </div>
+                                                <div class="flex items-center gap-2 flex-shrink-0">
+                                                    <span class="text-sm font-bold text-gray-900 whitespace-nowrap">
+                                                        @producto.Precio€
+                                                    </span>
+                                                    <button class="btn-add-product bg-[#E31E24] text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black transition-colors"
+                                                            data-id="@producto.Id"
+                                                            data-nombre="@producto.Nombre"
+                                                            data-precio="@producto.Precio">
+                                                        <span class="text-sm font-bold">+</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+
+            @* COLUMNA DERECHA: RESUMEN DEL PEDIDO (1/3 del ancho) *@
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg border-2 border-[#E31E24] p-6 sticky top-24">
+                    @* Header de la cesta *@
+                    <div class="pb-4 mb-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Tu Cesta</h2>
+                                <p class="text-xs text-gray-500 mt-1">Productos seleccionados</p>
+                            </div>
+                            <button id="btn-vaciar-cesta" class="hidden text-xs text-red-600 hover:text-red-800 font-semibold underline transition-colors">
+                                Vaciar cesta
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Productos en el carrito con scroll *@
+                    <div id="carrito-items" class="mb-6 max-h-[350px] overflow-y-auto">
+                        <div class="text-center py-8">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            <p class="text-sm text-gray-400">Tu cesta está vacía</p>
+                        </div>
+                    </div>
+
+                    @* Resumen de precios *@
+                    <div class="space-y-3 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Productos</span>
+                            <span class="font-semibold text-gray-900" id="subtotal">0,00€</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Envío</span>
+                            <span class="font-semibold text-gray-900">3,00€</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Tarifas</span>
+                            <span class="font-semibold text-gray-900">2,05€</span>
+                        </div>
+                        
+                        @* Total *@
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-base font-bold text-gray-900">Total</span>
+                                <span class="text-2xl font-bold text-[#E31E24]" id="total">5,05€</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Botón de pagar *@
+                    <button class="w-full mt-6 bg-[#E31E24] text-white py-3 px-6 rounded-lg font-semibold uppercase text-sm tracking-wide hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Pagar y Realizar Pedido
+                    </button>
+
+                    @* Mensaje de seguridad *@
+                    <div class="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Pago seguro con SSL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Carrito de compras
+        let carrito = {};
+        const ENVIO = 3.00;
+        const TARIFAS = 2.05;
+
+        // Función para añadir producto al carrito
+        function agregarProducto(id, nombre, precio) {
+            if (carrito[id]) {
+                carrito[id].cantidad++;
+            } else {
+                carrito[id] = {
+                    nombre: nombre,
+                    precio: parseFloat(precio),
+                    cantidad: 1
+                };
+            }
+            actualizarCarrito();
+        }
+
+        // Función para eliminar producto del carrito
+        function eliminarProducto(id) {
+            if (carrito[id]) {
+                if (carrito[id].cantidad > 1) {
+                    carrito[id].cantidad--;
+                } else {
+                    delete carrito[id];
+                }
+            }
+            actualizarCarrito();
+        }
+
+        // Función para vaciar toda la cesta
+        function vaciarCesta() {
+            if (confirm('¿Estás seguro de que quieres vaciar toda la cesta?')) {
+                carrito = {};
+                actualizarCarrito();
+            }
+        }
+
+        // Función para calcular subtotal
+        function calcularSubtotal() {
+            let subtotal = 0;
+            for (let id in carrito) {
+                subtotal += carrito[id].precio * carrito[id].cantidad;
+            }
+            return subtotal;
+        }
+
+        // Función para actualizar la vista del carrito
+        function actualizarCarrito() {
+            const carritoItems = document.getElementById('carrito-items');
+            const subtotalElement = document.getElementById('subtotal');
+            const totalElement = document.getElementById('total');
+            const btnPagar = document.querySelector('button[disabled]');
+            const btnVaciarCesta = document.getElementById('btn-vaciar-cesta');
+
+            // Si el carrito está vacío
+            if (Object.keys(carrito).length === 0) {
+                carritoItems.innerHTML = `
+                    <div class="text-center py-8">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <p class="text-sm text-gray-400">Tu cesta está vacía</p>
+                    </div>
+                `;
+                subtotalElement.textContent = '0,00€';
+                totalElement.textContent = (ENVIO + TARIFAS).toFixed(2).replace('.', ',') + '€';
+                btnPagar.disabled = true;
+                btnVaciarCesta.classList.add('hidden');
+            } else {
+                // Renderizar productos en el carrito
+                let html = '<div class="space-y-3 pr-2">';
+                for (let id in carrito) {
+                    const item = carrito[id];
+                    const subtotalItem = (item.precio * item.cantidad).toFixed(2).replace('.', ',');
+                    html += `
+                        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-semibold text-gray-900">${item.nombre}</h4>
+                                <p class="text-xs text-gray-500 mt-1">${item.precio.toFixed(2).replace('.', ',')}€ × ${item.cantidad}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-[#E31E24]">${subtotalItem}€</span>
+                                <button class="btn-remove-product bg-gray-200 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" data-id="${id}">
+                                    <span class="text-sm font-bold">-</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                carritoItems.innerHTML = html;
+
+                // Actualizar totales
+                const subtotal = calcularSubtotal();
+                const total = subtotal + ENVIO + TARIFAS;
+                
+                subtotalElement.textContent = subtotal.toFixed(2).replace('.', ',') + '€';
+                totalElement.textContent = total.toFixed(2).replace('.', ',') + '€';
+                
+                // Habilitar botón de pagar y mostrar botón de vaciar
+                btnPagar.disabled = false;
+                btnVaciarCesta.classList.remove('hidden');
+            }
+        }
+
+        // Inicializar eventos
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Sistema de pedidos cargado');
+
+            // Evento para añadir productos
+            document.querySelectorAll('.btn-add-product').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    const precio = this.getAttribute('data-precio');
+                    agregarProducto(id, nombre, precio);
+                    
+                    // Efecto visual al añadir
+                    this.classList.add('scale-125');
+                    setTimeout(() => {
+                        this.classList.remove('scale-125');
+                    }, 200);
+                });
+            });
+
+            // Delegación de eventos para botones de eliminar (dinámicos)
+            document.getElementById('carrito-items').addEventListener('click', function(e) {
+                const btnRemove = e.target.closest('.btn-remove-product');
+                if (btnRemove) {
+                    e.preventDefault();
+                    const id = btnRemove.getAttribute('data-id');
+                    eliminarProducto(id);
+                }
+            });
+
+            // Evento para vaciar la cesta
+            document.getElementById('btn-vaciar-cesta').addEventListener('click', function(e) {
+                e.preventDefault();
+                vaciarCesta();
+            });
+        });
+    </script>
+}
+
+
+
+
