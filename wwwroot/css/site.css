@@ -1,0 +1,58 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+
+/* Estilos para navegadores basados en Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px; /* Ancho de la barra */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color del fondo de la barra */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888; /* Color del "agarre" */
+    border-radius: 10px;
+    border: 3px solid #f1f1f1; /* Crea un efecto de margen */
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color al pasar el mouse */
+    }
+
+/* Estilos para Firefox (Soporte más limitado) */
+* {
+    scrollbar-width: thin; /* "auto" o "thin" */
+    scrollbar-color: #888 #f1f1f1; /* color del agarre y color del fondo */
+}

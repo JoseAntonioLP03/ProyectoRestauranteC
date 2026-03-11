@@ -1,0 +1,152 @@
+@model ProyectoRestauranteC_.Models.PedidoConfirmadoViewModel
+
+@{
+    ViewData["Title"] = "Pedido Confirmado";
+}
+
+<div class="bg-[#FBF8F3] min-h-screen py-10">
+    <div class="container mx-auto px-4 max-w-4xl">
+
+        @* Banner de éxito *@
+        <div class="bg-white rounded-2xl border-2 border-green-400 p-8 mb-8 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-black uppercase tracking-tighter text-black mb-2">
+                ¡Pedido <span class="text-[#E31E24]">Confirmado</span>!
+            </h1>
+            <p class="text-gray-500 text-sm font-medium mb-1">
+                Pedido <span class="font-black text-black">#@Model.Pedido.Id</span> —
+                @Model.Pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")
+            </p>
+            <div class="mt-4 inline-flex items-center gap-2 bg-[#FBF8F3] border border-gray-200 rounded-xl px-5 py-2.5">
+                <svg class="w-4 h-4 text-[#E31E24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-sm font-black text-gray-800 uppercase tracking-wide">
+                    Tu pedido llegará en aproximadamente <span class="text-[#E31E24]">30 minutos</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            @* COLUMNA IZQUIERDA *@
+            <div class="lg:col-span-2 space-y-6">
+
+                @* Datos de entrega *@
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#E31E24]">
+                        Datos de entrega
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre</p>
+                            <p class="text-sm font-semibold text-gray-900">@Model.Usuario.Nombre</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Email</p>
+                            <p class="text-sm font-semibold text-gray-900">@Model.Usuario.Email</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Teléfono</p>
+                            <p class="text-sm font-semibold text-gray-900">@(Model.Usuario.Telefono ?? "—")</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Dirección</p>
+                            <p class="text-sm font-semibold text-gray-900">@(Model.Pedido.DireccionEntrega ?? "—")</p>
+                        </div>
+                    </div>
+                </div>
+
+                @* Productos *@
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#E31E24]">
+                        Productos del pedido
+                    </h2>
+                    <div class="space-y-3">
+                        @foreach (var detalle in Model.Detalles)
+                        {
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-semibold text-gray-900">
+                                        @(detalle.Producto?.Nombre ?? "Producto")
+                                    </h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        @detalle.PrecioUnitario€ × @detalle.Cantidad
+                                    </p>
+                                </div>
+                                <span class="text-sm font-bold text-[#E31E24] ml-4 whitespace-nowrap">
+                                    @((detalle.PrecioUnitario * detalle.Cantidad))€
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            @* COLUMNA DERECHA: Resumen *@
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl border-2 border-[#E31E24] p-6 sticky top-24">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b border-gray-200">
+                        Resumen del pago
+                    </h2>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Productos</span>
+                            <span class="font-semibold text-gray-900">@Model.Pedido.Subtotal€</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Envío</span>
+                            <span class="font-semibold text-gray-900">3,00€</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Tarifas</span>
+                            <span class="font-semibold text-gray-900">2,05€</span>
+                        </div>
+                        @if (Model.Pedido.Descuento > 0)
+                        {
+                            <div class="flex justify-between text-sm text-green-600">
+                                <span class="font-semibold">Descuento cupón</span>
+                                <span class="font-bold">-@Model.Pedido.Descuento€</span>
+                            </div>
+                        }
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-base font-bold text-gray-900">Total pagado</span>
+                                <span class="text-2xl font-bold text-[#E31E24]">@Model.Pedido.Total€</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Estado del pedido *@
+                    <div class="mt-5 pt-5 border-t border-gray-200 space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-400 uppercase tracking-widest font-bold">Estado</span>
+                            <span class="font-black text-yellow-600 uppercase">@Model.Pedido.Estado.Replace("PendientePago", "Pendiente de pago")</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-400 uppercase tracking-widest font-bold">Tipo</span>
+                            <span class="font-black text-gray-700 uppercase">@Model.Pedido.TipoPedido</span>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Home" asp-action="Index"
+                       class="block w-full mt-6 bg-black text-white font-black py-4 rounded-xl hover:bg-[#E31E24] transition-all duration-300 uppercase tracking-widest text-sm text-center transform hover:-translate-y-1">
+                        Volver al inicio
+                    </a>
+
+                    <a asp-controller="Menu" asp-action="RealizarPedido"
+                       class="block w-full mt-3 text-center text-sm text-gray-500 hover:text-[#E31E24] transition-colors font-semibold">
+                        Hacer otro pedido
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

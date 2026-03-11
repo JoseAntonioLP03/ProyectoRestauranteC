@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TOPMEAL</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .swal2-popup, .swal2-popup * { font-family: inherit; }
+    </style>
+</head>
+<body class="bg-[#FBF8F3] text-gray-900 font-sans flex flex-col min-h-screen">
+
+    @* HEADER: Fondo crema claro con borde sutil *@
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+
+                @* LADO IZQUIERDO: Tu Logo y Nombre *@
+                <div class="flex items-center gap-3">
+                    <img src="~/images/logo.png" alt="TOPMEAL" class="h-10 w-auto" />
+                    <a class="text-2xl font-black tracking-tighter text-black hover:text-[#E31E24] transition-colors"
+                       asp-controller="Home" asp-action="Index">
+                        TOP<span class="text-[#E31E24]">MEAL</span>
+                    </a>
+                </div>
+
+                @* CENTRO: Enlaces de navegación en Negro *@
+                <div class="hidden md:flex space-x-10">
+                    @{
+                        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                        
+                        var isHome = currentController == "Home" && currentAction == "Index";
+                        var isCarta = currentController == "Menu" && currentAction == "Index";
+                        var isPedido = currentController == "Menu" && currentAction == "RealizarPedido";
+                    }
+                    
+                    <a class="text-sm font-bold uppercase tracking-widest @(isHome ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
+                       asp-controller="Home" asp-action="Index">Inicio</a>
+                    <a class="text-sm font-bold uppercase tracking-widest @(isCarta ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
+                       asp-controller="Menu" asp-action="Index">La Carta</a>
+                    <a class="text-sm font-bold uppercase tracking-widest @(isPedido ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
+                       asp-controller="Menu" asp-action="RealizarPedido">Realizar Pedido</a>
+                </div>
+
+                @* LADO DERECHO: Acceso de Usuarios *@
+                <div class="flex items-center gap-6">
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Menu" asp-action="Perfil"
+                           class="flex items-center gap-2 text-sm font-black text-black hover:text-[#E31E24] transition-colors group">
+                            <span class="w-8 h-8 rounded-full bg-[#E31E24] flex items-center justify-center text-white text-xs font-black uppercase shadow-md shadow-red-100 group-hover:bg-black transition-colors">
+                                @User.Identity.Name!.Substring(0, 1)
+                            </span>
+                            <span class="hidden sm:block">@User.Identity.Name</span>
+                        </a>
+                        <a asp-controller="Acceso" asp-action="Logout"
+                           class="bg-[#E31E24] text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-red-100 hover:shadow-none">
+                            Cerrar Sesión
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Acceso" asp-action="Login"
+                           class="text-xs font-black uppercase tracking-widest text-black hover:text-[#E31E24] transition">
+                            Entrar
+                        </a>
+                        <a asp-controller="Acceso" asp-action="Register"
+                           class="bg-[#E31E24] text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-red-100 hover:shadow-none">
+                            Registrarse
+                        </a>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    @* CONTENIDO PRINCIPAL *@
+    <div class="flex-grow bg-[#FBF8F3]">
+        <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @* FOOTER *@
+    <footer class="bg-[#0d0d0d] text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/8">
+
+                @* Marca *@
+                <div>
+                    <span class="text-2xl font-black tracking-tighter">TOP<span class="text-[#E31E24]">MEAL</span></span>
+                    <p class="text-gray-500 text-sm mt-3 leading-relaxed">Sabor real en cada pedido. Menú artesanal e ingredientes frescos.</p>
+                    <div class="flex items-center gap-2 mt-5">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span class="text-green-400 text-[11px] font-black uppercase tracking-wider">Abierto ahora</span>
+                    </div>
+                </div>
+
+                @* Navegación *@
+                <div>
+                    <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-5">Navegación</h5>
+                    <ul class="space-y-3">
+                        <li><a asp-controller="Home" asp-action="Index" class="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block">Inicio</a></li>
+                        <li><a asp-controller="Menu" asp-action="Index" class="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block">La Carta</a></li>
+                        <li><a asp-controller="Menu" asp-action="RealizarPedido" class="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block">Realizar Pedido</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy" class="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block">Privacidad</a></li>
+                    </ul>
+                </div>
+
+                @* Servicios *@
+                <div>
+                    <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-5">Servicios</h5>
+                    <ul class="space-y-3">
+                        <li>
+                            <button onclick="mostrarCupones()"
+                                    class="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block text-left cursor-pointer">
+                                Cupones y Ofertas
+                            </button>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-gray-600 text-sm">Reservas de Mesa</span>
+                            <span class="text-[9px] bg-white/5 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Pronto</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-gray-600 text-sm">Galería</span>
+                            <span class="text-[9px] bg-white/5 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Pronto</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-gray-600 text-sm">Valoraciones</span>
+                            <span class="text-[9px] bg-white/5 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Pronto</span>
+                        </li>
+                    </ul>
+                </div>
+
+                @* Contacto *@
+                <div>
+                    <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-5">Contacto</h5>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <svg class="w-4 h-4 text-[#E31E24] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            +34 600 000 000
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <svg class="w-4 h-4 text-[#E31E24] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            info@@topmeal.es
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <svg class="w-4 h-4 text-[#E31E24] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Calle Principal, 123 · Madrid
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            @* Bottom bar *@
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8">
+                <p class="text-gray-600 text-[11px] uppercase tracking-widest">&copy; 2026 TopMeal — Gourmet App Project</p>
+                <p class="text-gray-700 text-[11px] uppercase tracking-widest"> Realizado por: José Antonio López Pachón</p>
+            </div>
+        </div>
+    </footer>
+
+    @* Scripts *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        async function mostrarCupones() {
+            Swal.fire({
+                html: '<p style="color:#aaa;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0;">Cargando...</p>',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                width: 500,
+                background: '#fff',
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch('/Home/CuponesDisponibles');
+                const cupones = await res.json();
+
+                if (cupones.length === 0) {
+                    Swal.fire({
+                        title: '<span style="font-weight:900;font-size:1.1rem;color:#111;letter-spacing:-0.3px;">Sin cupones activos</span>',
+                        html: '<p style="color:#aaa;font-size:13px;margin:0;">Ahora mismo no hay cupones disponibles. Vuelve pronto.</p>',
+                        confirmButtonText: 'Cerrar',
+                        confirmButtonColor: '#E31E24',
+                        width: 440,
+                        background: '#fff'
+                    });
+                    return;
+                }
+
+                const html = cupones.map(c => {
+                    const descuento = c.tipoDescuento === 'Porcentaje'
+                        ? `${c.valorDescuento}% de descuento`
+                        : `${parseFloat(c.valorDescuento).toFixed(2)}\u20ac de descuento`;
+                    return `
+                        <div style="background:#fff;border:1px solid #ebebeb;border-left:4px solid #E31E24;border-radius:6px;padding:14px 16px;margin-bottom:10px;text-align:left;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <code style="font-size:1rem;font-weight:900;color:#111;letter-spacing:3px;font-family:monospace;">${c.codigo}</code>
+                                <span style="background:#E31E24;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:4px 10px;border-radius:3px;">${descuento}</span>
+                            </div>
+                            <div style="display:flex;gap:20px;font-size:10px;color:#bbb;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid #f5f5f5;padding-top:10px;">
+                                <span>V\u00e1lido hasta ${c.fechaFin}</span>
+                                <span>${c.usosRestantes} usos restantes</span>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                Swal.fire({
+                    title: '<span style="font-weight:900;font-size:1.1rem;color:#111;letter-spacing:-0.3px;">Cupones disponibles</span>',
+                    html: `<p style="color:#bbb;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:16px;">Aplica el c\u00f3digo en el checkout</p>${html}`,
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#E31E24',
+                    width: 500,
+                    background: '#fff'
+                });
+            } catch {
+                Swal.fire({
+                    title: '<span style="font-weight:900;font-size:1.1rem;color:#111;">Error</span>',
+                    html: '<p style="color:#aaa;font-size:13px;margin:0;">No se pudieron cargar los cupones. Int\u00e9ntalo de nuevo.</p>',
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#E31E24',
+                    width: 440,
+                    background: '#fff'
+                });
+            }
+        }
+    </script>
+</body>
+</html>
