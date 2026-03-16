@@ -11,6 +11,7 @@ builder.Services.AddDbContext<RestauranteContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RestauranteDB")));
 
 builder.Services.AddTransient<RepositoryUsuarios>();
+builder.Services.AddTransient<RepositoryReservas>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

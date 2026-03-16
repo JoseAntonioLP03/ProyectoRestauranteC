@@ -120,18 +120,19 @@
             <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Hacer pedido <span class="group-hover:translate-x-1 transition-transform inline-block">→</span></span>
         </a>
 
-        @* Reservas - Próximamente *@
-        <div class="bg-white rounded-2xl p-7 border-2 border-dashed border-gray-200 relative overflow-hidden">
-            <div class="absolute top-4 right-4 bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">Próximamente</div>
-            <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-5">
-                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        @* Reservas - Activo *@
+        <a asp-controller="Reservas" asp-action="Index"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all relative overflow-hidden">
+            <div class="absolute top-4 right-4 bg-green-100 text-green-700 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">¡Nuevo!</div>
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
             </div>
-            <h3 class="font-black text-gray-300 text-xl mb-2">Reserva de Mesa</h3>
-            <p class="text-gray-300 text-sm leading-relaxed mb-5">Reserva tu mesa para la ocasión perfecta. Elige día, hora y número de comensales online.</p>
-            <span class="text-gray-300 text-xs font-black uppercase tracking-wider">En desarrollo</span>
-        </div>
+            <h3 class="font-black text-gray-900 text-xl mb-2">Reserva de Mesa</h3>
+            <p class="text-gray-400 text-sm leading-relaxed mb-5">Cruza nuestras puertas. Reserva tu mesa en tiempo real para la ocasión perfecta. Elige fecha, turno y comensales.</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Ver Mesas Libres <span class="group-hover:translate-x-1 transition-transform inline-block">→</span></span>
+        </a>
 
         @* Cupones *@
         <div onclick="mostrarCupones()" class="cursor-pointer bg-gradient-to-br from-[#E31E24] to-[#b01519] rounded-2xl p-7 text-white relative overflow-hidden">
@@ -152,8 +153,7 @@
             <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-white/5 rounded-full pointer-events-none"></div>
             <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-5 relative">
                 <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </div>
             <h3 class="font-black text-white text-xl mb-2 relative">Opiniones Reales</h3>
             <p class="text-gray-400 text-sm leading-relaxed mb-5 relative">Lee las experiencias de nuestros clientes y comparte la tuya tras cada pedido verificado.</p>
@@ -162,7 +162,7 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                     }
                 </div>
@@ -195,8 +195,8 @@
         </div>
         <div>
             <h4 class="font-black text-white text-base mb-1">Horario</h4>
-            <p class="text-gray-400 text-sm">Lun – Vie: 12:00 – 23:00</p>
-            <p class="text-gray-400 text-sm">Sáb – Dom: 11:00 – 00:00</p>
+            <p class="text-gray-400 text-sm">Comidas: 12:30 – 16:30</p>
+            <p class="text-gray-400 text-sm">Cenas: 20:00 – 01:00</p>
         </div>
     </div>
     <div class="flex items-start gap-4">

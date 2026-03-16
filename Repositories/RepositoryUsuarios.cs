@@ -67,13 +67,13 @@ namespace ProyectoRestauranteC_.Repositories
         }
 
         public async Task<Pedido> CrearPedidoAsync(int usuarioId, List<ItemCarrito> items,
-            decimal subtotal, decimal descuento, decimal total, string? direccionEntrega, int? cuponId)
+            decimal subtotal, decimal descuento, decimal total, string? direccionEntrega, int? cuponId, string tipoPedido = "Domicilio")
         {
             var pedido = new Pedido
             {
                 UsuarioId = usuarioId,
                 FechaPedido = DateTime.Now,
-                TipoPedido = "Domicilio",
+                TipoPedido = tipoPedido,
                 Estado = "PendientePago",
                 Subtotal = subtotal,
                 Descuento = descuento,

@@ -1,19 +1,19 @@
-﻿namespace ProyectoRestauranteC_.Helpers
+﻿using System.Security.Cryptography;
+
+namespace ProyectoRestauranteC_.Helpers
 {
     public class HelperTool
     {
-        // Genera un Salt aleatorio y lo devuelve como string
+        // Genera un Salt aleatorio de forma segura y lo devuelve en formato Base64
         public static string GenerateSalt()
         {
-            Random random = new Random();
-            string salt = "";
-            for (int i = 1; i <= 50; i++)
+            byte[] bytes = new byte[32]; // Generamos 256 bits (32 bytes) para alta seguridad
+            using (var rng = RandomNumberGenerator.Create())
             {
-                int aleatorio = random.Next(1, 255);
-                char letra = Convert.ToChar(aleatorio);
-                salt += letra;
+                rng.GetBytes(bytes);
             }
-            return salt;
+            // Devolver en Base64 garantiza que sean caracteres estándar imprimibles que no se corrompan fácilmente
+            return Convert.ToBase64String(bytes);
         }
 
         // Compara dos arrays de bytes (necesario para el login)

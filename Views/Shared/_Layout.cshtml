@@ -38,6 +38,7 @@
                         var isHome = currentController == "Home" && currentAction == "Index";
                         var isCarta = currentController == "Menu" && currentAction == "Index";
                         var isPedido = currentController == "Menu" && currentAction == "RealizarPedido";
+                        var isReserva = currentController == "Reservas" && currentAction == "Index";
                     }
                     
                     <a class="text-sm font-bold uppercase tracking-widest @(isHome ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
@@ -46,6 +47,8 @@
                        asp-controller="Menu" asp-action="Index">La Carta</a>
                     <a class="text-sm font-bold uppercase tracking-widest @(isPedido ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
                        asp-controller="Menu" asp-action="RealizarPedido">Realizar Pedido</a>
+                    <a class="text-sm font-bold uppercase tracking-widest @(isReserva ? "text-[#E31E24]" : "text-black hover:text-[#E31E24]") transition"
+                       asp-controller="Reservas" asp-action="Index">Reserva tu Mesa</a>
                 </div>
 
                 @* LADO DERECHO: Acceso de Usuarios *@
@@ -125,9 +128,11 @@
                                 Cupones y Ofertas
                             </button>
                         </li>
-                        <li class="flex items-center gap-2">
-                            <span class="text-gray-600 text-sm">Reservas de Mesa</span>
-                            <span class="text-[9px] bg-white/5 text-gray-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Pronto</span>
+                        <li>
+                            <a asp-controller="Reservas" asp-action="Index" class="text-[#E31E24] hover:text-white transition-all text-sm font-bold inline-block">
+                                Reservas de Mesa 
+                                <span class="text-[9px] bg-[#E31E24]/20 text-[#E31E24] ml-1 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Nuevo</span>
+                            </a>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="text-gray-600 text-sm">Galería</span>

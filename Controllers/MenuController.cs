@@ -153,7 +153,7 @@ namespace ProyectoRestauranteC_.Controllers
 
         [HttpPost]
         [AuthorizeUsers]
-        public async Task<IActionResult> ConfirmarPedido()
+        public async Task<IActionResult> ConfirmarPedido(bool esRecoger = false)
         {
             var carrito = ObtenerCarrito();
             if (!carrito.Any()) return RedirectToAction("RealizarPedido");
@@ -176,9 +176,11 @@ namespace ProyectoRestauranteC_.Controllers
             }
             decimal total = Math.Max(0, subtotal + 3.00m + 2.05m - descuento);
 
+            string tipoPedido = esRecoger ? "Recogida" : "Domicilio";
+
             var pedido = await repoUsuarios.CrearPedidoAsync(
                 idUsuario, carrito, subtotal, descuento, total,
-                usuario.Direccion, cupon?.Id);
+                usuario.Direccion, cupon?.Id, tipoPedido);
 
             HttpContext.Session.Remove("CARRITO");
             HttpContext.Session.Remove("CUPON");
