@@ -46,7 +46,7 @@ namespace ProyectoRestauranteC_.Controllers
         [HttpPost]
         public async Task<IActionResult> Reservar(int idMesa, DateTime fecha, TimeSpan hora, int npersonas)
         {
-            int idUsuario = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            int idUsuario = int.Parse(User.FindFirstValue("ID_USUARIO")!);
             DateTime fechaTurno = fecha.Date.Add(hora);
             
             await _repoReservas.CrearReservaAsync(idUsuario, idMesa, fechaTurno, npersonas);

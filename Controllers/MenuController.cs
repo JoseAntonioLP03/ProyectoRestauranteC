@@ -11,11 +11,13 @@ namespace ProyectoRestauranteC_.Controllers
     {
         private readonly IMenuRepository menuRepository;
         private readonly RepositoryUsuarios repoUsuarios;
+        private readonly RepositoryReservas repoReservas;
 
-        public MenuController(IMenuRepository menuRepository, RepositoryUsuarios repoUsuarios)
+        public MenuController(IMenuRepository menuRepository, RepositoryUsuarios repoUsuarios, RepositoryReservas repoReservas)
         {
             this.menuRepository = menuRepository;
             this.repoUsuarios = repoUsuarios;
+            this.repoReservas = repoReservas;
         }
 
         private List<ItemCarrito> ObtenerCarrito()
@@ -198,11 +200,13 @@ namespace ProyectoRestauranteC_.Controllers
             if (usuario == null) return RedirectToAction("Login", "Acceso");
 
             var pedidos = await repoUsuarios.GetPedidosByUsuarioAsync(idUsuario);
+            var reservas = await repoReservas.GetReservasByUsuarioAsync(idUsuario);
 
             var vm = new PerfilViewModel
             {
                 Usuario = usuario,
-                Pedidos = pedidos
+                Pedidos = pedidos,
+                Reservas = reservas
             };
             return View(vm);
         }
