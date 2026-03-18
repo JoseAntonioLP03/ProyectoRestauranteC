@@ -19,5 +19,8 @@ namespace ProyectoRestauranteC_.Data
         public DbSet<DetallePedido> DetallesPedido { get; set; }
         public DbSet<Mesa> Mesas { get; set; }
         public DbSet<Reserva> Reservas { get; set; }
+        public DbSet<Galeria> Galeria { get; set; }
+        public DbSet<Valoracion> Valoraciones { get; set; }
+        public DbSet<Horario> Horarios { get; set; }
     }
 }

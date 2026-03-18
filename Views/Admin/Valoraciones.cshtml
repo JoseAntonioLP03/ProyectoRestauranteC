@@ -1,0 +1,172 @@
+@model IEnumerable<ProyectoRestauranteC_.Models.Valoracion>
+
+@{ ViewData["Title"] = "Gestión de Valoraciones"; }
+
+<section class="relative bg-gradient-to-br from-[#0d0d0d] via-[#1a0000] to-[#111] rounded-3xl overflow-hidden mb-12 py-16">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E31E24] rounded-full opacity-[0.07] blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+    <div class="relative z-10 px-8 md:px-16">
+        <h1 class="text-4xl font-black text-white mb-2">Gestión de Valoraciones</h1>
+        <p class="text-gray-400">@Model.Count() valoraciones totales</p>
+    </div>
+</section>
+
+<section class="bg-white rounded-2xl border-2 border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="px-6 py-3 text-left font-black">ID</th>
+                <th class="px-6 py-3 text-left font-black">Usuario</th>
+                <th class="px-6 py-3 text-left font-black">Puntuación</th>
+                <th class="px-6 py-3 text-left font-black">Comentario</th>
+                <th class="px-6 py-3 text-left font-black">Visible</th>
+                <th class="px-6 py-3 text-center font-black">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            @foreach(var v in Model.OrderByDescending(x => x.Fecha))
+            {
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3">#@v.Id</td>
+                    <td class="px-6 py-3 font-bold">@v.Usuario?.Nombre</td>
+                    <td class="px-6 py-3">
+                        @for(int i = 0; i < v.Puntuacion; i++)
+                        {
+                            <span class="text-yellow-400">?</span>
+                        }
+                        @for(int i = v.Puntuacion; i < 5; i++)
+                        {
+                            <span class="text-gray-300">?</span>
+                        }
+                    </td>
+                    <td class="px-6 py-3 max-w-xs truncate">@v.Comentario</td>
+                    <td class="px-6 py-3">
+                        <span class="@(v.Visible ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700") px-2 py-1 rounded text-xs font-bold">
+                            @(v.Visible ? "Visible" : "Oculta")
+                        </span>
+                    </td>
+                    <td class="px-6 py-3 text-center flex gap-2 justify-center">
+                        <button type="button" onclick="abrirModalValoracion(@v.Id, @(v.Visible ? "true" : "false"))" class="bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 text-xs font-bold">
+                            @(v.Visible ? "Ocultar" : "Mostrar")
+                        </button>
+                        <button type="button" onclick="eliminarValoracion(@v.Id)" class="bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 text-xs font-bold">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@* MODAL VALORACIÓN *@
+<div id="modalValoracion" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 class="text-2xl font-black text-gray-900 mb-4">Cambiar Visibilidad</h2>
+        <form id="formValoracion">
+            <input type="hidden" id="valoracionId" value="0">
+            <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="valoracionVisible" class="w-4 h-4">
+                    <label for="valoracionVisible" class="text-sm font-bold text-gray-700">Visible</label>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 bg-[#E31E24] text-white px-4 py-2 rounded-lg font-bold hover:bg-black transition">
+                    Guardar
+                </button>
+                <button type="button" onclick="cerrarModalValoracion()" class="flex-1 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-8 text-center">
+    <a asp-controller="Admin" asp-action="Index" class="text-[#E31E24] font-black">Volver al Panel</a>
+</div>
+
+<script>
+function abrirModalValoracion(id, visible) {
+    document.getElementById('valoracionId').value = id;
+    document.getElementById('valoracionVisible').checked = visible;
+    document.getElementById('modalValoracion').classList.remove('hidden');
+}
+
+function cerrarModalValoracion() {
+    document.getElementById('modalValoracion').classList.add('hidden');
+}
+
+document.getElementById('formValoracion').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('valoracionId').value;
+    const visible = document.getElementById('valoracionVisible').checked;
+
+    const params = new URLSearchParams();
+    params.append('id', id);
+    params.append('visible', visible);
+
+    try {
+        const response = await fetch('/Admin/UpdateValoracion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        const data = await response.json();
+        Swal.fire({
+            title: data.success ? 'Éxito' : 'Error',
+            text: data.message,
+            icon: data.success ? 'success' : 'error',
+            timer: 5000,
+            timerProgressBar: true,
+            didClose: () => {
+                if (data.success) location.reload();
+            }
+        });
+    } catch (error) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Error: ' + error,
+            icon: 'error',
+            timer: 5000,
+            timerProgressBar: true
+        });
+    }
+});
+
+document.getElementById('modalValoracion').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalValoracion')) cerrarModalValoracion();
+});
+
+function eliminarValoracion(id) {
+    Swal.fire({
+        title: '¿Deseas eliminar esta valoración?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E31E24',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/Admin/DeleteValoracion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id
+            }).then(r => r.json()).then(d => {
+                Swal.fire({
+                    title: d.success ? 'Éxito' : 'Error',
+                    text: d.message,
+                    icon: d.success ? 'success' : 'error',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didClose: () => {
+                        if (d.success) location.reload();
+                    }
+                });
+            });
+        }
+    });
+}
+</script>

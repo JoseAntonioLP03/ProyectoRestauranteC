@@ -1,0 +1,154 @@
+@{
+    ViewData["Title"] = "Panel de Administración";
+    var stats = Model;
+}
+
+@* ?? HEADER ?? *@
+<section class="relative bg-gradient-to-br from-[#0d0d0d] via-[#1a0000] to-[#111] rounded-3xl overflow-hidden mb-12 py-16">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E31E24] rounded-full opacity-[0.07] blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 bg-[#E31E24] rounded-full opacity-[0.04] blur-3xl -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+
+    <div class="relative z-10 px-8 md:px-16">
+        <h1 class="text-4xl md:text-5xl font-black text-white leading-tight mb-3">Panel de Administración</h1>
+        <p class="text-gray-400 text-lg max-w-lg">Gestiona todos los datos de tu restaurante desde aquí</p>
+    </div>
+</section>
+
+
+
+@* ?? TODAS LAS TABLAS ?? *@
+<section class="mb-12">
+    <h2 class="text-3xl font-black text-gray-900 mb-8">Tablas de la Base de Datos</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @* Productos *@
+        <a asp-controller="Admin" asp-action="Productos"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Productos</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalProductos registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Categorías *@
+        <a asp-controller="Admin" asp-action="Categorias"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Categorías</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalCategorias registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Usuarios *@
+        <a asp-controller="Admin" asp-action="Usuarios"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-2a6 6 0 0112 0v2zm0 0h6v-2a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Usuarios</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalUsuarios registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Pedidos *@
+        <a asp-controller="Admin" asp-action="Pedidos"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Pedidos</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalPedidos registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Reservas *@
+        <a asp-controller="Admin" asp-action="Reservas"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Reservas</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalReservas registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Valoraciones *@
+        <a asp-controller="Admin" asp-action="Valoraciones"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2l-2.81 6.63L2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Valoraciones</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalValoraciones registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Cupones *@
+        <a asp-controller="Admin" asp-action="Cupones"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Cupones</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalCupones registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Mesas *@
+        <a asp-controller="Admin" asp-action="Mesas"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Mesas</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">@stats.TotalMesas registros</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Galería *@
+        <a asp-controller="Admin" asp-action="Galeria"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Galería</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">Imágenes</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+
+        @* Horarios *@
+        <a asp-controller="Admin" asp-action="Horarios"
+           class="group block bg-white rounded-2xl p-7 border-2 border-gray-100 hover:border-[#E31E24] hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E31E24] transition-colors">
+                <svg class="w-6 h-6 text-[#E31E24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="font-black text-gray-900 mb-1">Horarios</h3>
+            <p class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4">Jornadas</p>
+            <span class="inline-flex items-center gap-1 text-[#E31E24] text-xs font-black uppercase tracking-wider">Gestionar</span>
+        </a>
+    </div>
+</section>

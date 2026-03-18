@@ -1,0 +1,185 @@
+@model IEnumerable<ProyectoRestauranteC_.Models.Mesa>
+
+@{ ViewData["Title"] = "Gestión de Mesas"; }
+
+<section class="relative bg-gradient-to-br from-[#0d0d0d] via-[#1a0000] to-[#111] rounded-3xl overflow-hidden mb-12 py-16">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E31E24] rounded-full opacity-[0.07] blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+    <div class="relative z-10 px-8 md:px-16">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-black text-white mb-2">Gestión de Mesas</h1>
+                <p class="text-gray-400">@Model.Count() mesas disponibles</p>
+            </div>
+            <button type="button" onclick="abrirModalMesa()" class="bg-[#E31E24] text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg">
+                + Nueva Mesa
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="bg-white rounded-2xl border-2 border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="px-6 py-3 text-left font-black">ID</th>
+                <th class="px-6 py-3 text-left font-black">Número</th>
+                <th class="px-6 py-3 text-left font-black">Capacidad</th>
+                <th class="px-6 py-3 text-left font-black">Estado</th>
+                <th class="px-6 py-3 text-center font-black">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            @foreach(var m in Model.OrderBy(x => x.NumeroMesa))
+            {
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3">@m.Id</td>
+                    <td class="px-6 py-3 font-bold">@m.NumeroMesa</td>
+                    <td class="px-6 py-3">@m.Capacidad</td>
+                    <td class="px-6 py-3">
+                        <span class="@(m.Activa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700") px-2 py-1 rounded text-xs font-bold">
+                            @(m.Activa ? "Activa" : "Inactiva")
+                        </span>
+                    </td>
+                    <td class="px-6 py-3 text-center flex gap-2 justify-center">
+                        <button type="button" onclick="abrirModalMesa(@m.Id, @m.NumeroMesa, @m.Capacidad, @(m.Activa ? "true" : "false"))" class="bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 text-xs font-bold">
+                            Editar
+                        </button>
+                        <button type="button" onclick="eliminarMesa(@m.Id)" class="bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 text-xs font-bold">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@* MODAL MESA *@
+<div id="modalMesa" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 class="text-2xl font-black text-gray-900 mb-4" id="modalMesaTitle">Nueva Mesa</h2>
+        <form id="formMesa">
+            <input type="hidden" id="mesaId" value="0">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Número de Mesa</label>
+                    <input type="number" id="mesaNumero" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Capacidad (personas)</label>
+                    <input type="number" id="mesaCapacidad" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="20" required>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="mesaActiva" class="w-4 h-4" checked>
+                    <label for="mesaActiva" class="text-sm font-bold text-gray-700">Activa</label>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 bg-[#E31E24] text-white px-4 py-2 rounded-lg font-bold hover:bg-black transition">
+                    Guardar
+                </button>
+                <button type="button" onclick="cerrarModalMesa()" class="flex-1 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-8 text-center">
+    <a asp-controller="Admin" asp-action="Index" class="text-[#E31E24] font-black">Volver al Panel</a>
+</div>
+
+<script>
+function abrirModalMesa(id = 0, numero = 0, capacidad = 2, activa = true) {
+    document.getElementById('mesaId').value = id;
+    document.getElementById('mesaNumero').value = numero;
+    document.getElementById('mesaCapacidad').value = capacidad;
+    document.getElementById('mesaActiva').checked = activa;
+    document.getElementById('modalMesaTitle').textContent = id === 0 ? 'Nueva Mesa' : 'Editar Mesa';
+    document.getElementById('modalMesa').classList.remove('hidden');
+}
+
+function cerrarModalMesa() {
+    document.getElementById('modalMesa').classList.add('hidden');
+    document.getElementById('formMesa').reset();
+}
+
+document.getElementById('formMesa').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('mesaId').value;
+    const numero = document.getElementById('mesaNumero').value;
+    const capacidad = document.getElementById('mesaCapacidad').value;
+    const activa = document.getElementById('mesaActiva').checked;
+
+    const endpoint = id == 0 ? '/Admin/CreateMesa' : '/Admin/UpdateMesa';
+    const params = new URLSearchParams();
+    if (id != 0) params.append('id', id);
+    params.append('numeroMesa', numero);
+    params.append('capacidad', capacidad);
+    params.append('activa', activa);
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        const data = await response.json();
+        Swal.fire({
+            title: data.success ? 'Éxito' : 'Error',
+            text: data.message,
+            icon: data.success ? 'success' : 'error',
+            timer: 5000,
+            timerProgressBar: true,
+            didClose: () => {
+                if (data.success) location.reload();
+            }
+        });
+    } catch (error) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Error: ' + error,
+            icon: 'error',
+            timer: 5000,
+            timerProgressBar: true
+        });
+    }
+});
+
+document.getElementById('modalMesa').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalMesa')) cerrarModalMesa();
+});
+
+function eliminarMesa(id) {
+    Swal.fire({
+        title: '¿Deseas eliminar esta mesa?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E31E24',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/Admin/DeleteMesa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id
+            }).then(r => r.json()).then(d => {
+                Swal.fire({
+                    title: d.success ? 'Éxito' : 'Error',
+                    text: d.message,
+                    icon: d.success ? 'success' : 'error',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didClose: () => {
+                        if (d.success) location.reload();
+                    }
+                });
+            });
+        }
+    });
+}
+</script>

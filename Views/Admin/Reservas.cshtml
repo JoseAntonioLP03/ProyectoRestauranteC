@@ -1,0 +1,170 @@
+@model IEnumerable<ProyectoRestauranteC_.Models.Reserva>
+
+@{ ViewData["Title"] = "Gestión de Reservas"; }
+
+<section class="relative bg-gradient-to-br from-[#0d0d0d] via-[#1a0000] to-[#111] rounded-3xl overflow-hidden mb-12 py-16">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E31E24] rounded-full opacity-[0.07] blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+    <div class="relative z-10 px-8 md:px-16">
+        <h1 class="text-4xl font-black text-white mb-2">Gestión de Reservas</h1>
+        <p class="text-gray-400">@Model.Count() reservas totales</p>
+    </div>
+</section>
+
+<section class="bg-white rounded-2xl border-2 border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="px-6 py-3 text-left font-black">ID</th>
+                <th class="px-6 py-3 text-left font-black">Usuario</th>
+                <th class="px-6 py-3 text-left font-black">Mesa</th>
+                <th class="px-6 py-3 text-left font-black">Personas</th>
+                <th class="px-6 py-3 text-left font-black">Fecha</th>
+                <th class="px-6 py-3 text-left font-black">Estado</th>
+                <th class="px-6 py-3 text-center font-black">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            @foreach(var r in Model.OrderByDescending(x => x.FechaReserva))
+            {
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3">#@r.Id</td>
+                    <td class="px-6 py-3">@r.Usuario?.Nombre</td>
+                    <td class="px-6 py-3">Mesa @r.Mesa?.NumeroMesa</td>
+                    <td class="px-6 py-3">@r.NumeroPersonas</td>
+                    <td class="px-6 py-3">@r.FechaReserva.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="px-6 py-3">
+                        <span class="@(r.Estado == "Confirmada" ? "bg-green-100 text-green-700" : r.Estado == "Cancelada" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700") px-2 py-1 rounded text-xs font-bold">
+                            @r.Estado
+                        </span>
+                    </td>
+                    <td class="px-6 py-3 text-center flex gap-2 justify-center">
+                        <button type="button" onclick="abrirModalReserva(@r.Id, '@r.Estado')" class="bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 text-xs font-bold">
+                            Editar
+                        </button>
+                        <button type="button" onclick="eliminarReserva(@r.Id)" class="bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 text-xs font-bold">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@* MODAL RESERVA *@
+<div id="modalReserva" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 class="text-2xl font-black text-gray-900 mb-4">Cambiar Estado de la Reserva</h2>
+        <form id="formReserva">
+            <input type="hidden" id="reservaId" value="0">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Estado</label>
+                    <select id="reservaEstado" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Confirmada">Confirmada</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Expirada">Expirada</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 bg-[#E31E24] text-white px-4 py-2 rounded-lg font-bold hover:bg-black transition">
+                    Guardar
+                </button>
+                <button type="button" onclick="cerrarModalReserva()" class="flex-1 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-8 text-center">
+    <a asp-controller="Admin" asp-action="Index" class="text-[#E31E24] font-black">Volver al Panel</a>
+</div>
+
+<script>
+function abrirModalReserva(id, estado) {
+    document.getElementById('reservaId').value = id;
+    document.getElementById('reservaEstado').value = estado;
+    document.getElementById('modalReserva').classList.remove('hidden');
+}
+
+function cerrarModalReserva() {
+    document.getElementById('modalReserva').classList.add('hidden');
+}
+
+document.getElementById('formReserva').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('reservaId').value;
+    const estado = document.getElementById('reservaEstado').value;
+
+    const params = new URLSearchParams();
+    params.append('id', id);
+    params.append('estado', estado);
+
+    try {
+        const response = await fetch('/Admin/UpdateReserva', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        const data = await response.json();
+        Swal.fire({
+            title: data.success ? 'Éxito' : 'Error',
+            text: data.message,
+            icon: data.success ? 'success' : 'error',
+            timer: 5000,
+            timerProgressBar: true,
+            didClose: () => {
+                if (data.success) location.reload();
+            }
+        });
+    } catch (error) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Error: ' + error,
+            icon: 'error',
+            timer: 5000,
+            timerProgressBar: true
+        });
+    }
+});
+
+document.getElementById('modalReserva').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalReserva')) cerrarModalReserva();
+});
+
+function eliminarReserva(id) {
+    Swal.fire({
+        title: '¿Deseas eliminar esta reserva?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E31E24',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/Admin/DeleteReserva', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id
+            }).then(r => r.json()).then(d => {
+                Swal.fire({
+                    title: d.success ? 'Éxito' : 'Error',
+                    text: d.message,
+                    icon: d.success ? 'success' : 'error',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didClose: () => {
+                        if (d.success) location.reload();
+                    }
+                });
+            });
+        }
+    });
+}
+</script>

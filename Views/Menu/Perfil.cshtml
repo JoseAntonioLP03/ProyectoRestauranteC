@@ -70,6 +70,14 @@
                        class="block w-full mt-6 bg-black text-white font-black py-4 rounded-xl hover:bg-[#E31E24] transition-all duration-300 uppercase tracking-widest text-sm text-center transform hover:-translate-y-1">
                         Hacer un pedido
                     </a>
+
+                    @if (Model.Usuario.Rol == "Admin")
+                    {
+                        <a asp-controller="Admin" asp-action="Index"
+                           class="block w-full mt-3 bg-[#E31E24] text-white font-black py-4 rounded-xl hover:bg-black transition-all duration-300 uppercase tracking-widest text-sm text-center transform hover:-translate-y-1 shadow-lg shadow-red-100">
+                            Panel de Admin
+                        </a>
+                    }
                 </div>
             </div>
 
