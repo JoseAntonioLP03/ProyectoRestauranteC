@@ -31,11 +31,11 @@
                     <td class="px-6 py-3">
                         @for(int i = 0; i < v.Puntuacion; i++)
                         {
-                            <span class="text-yellow-400">?</span>
+                            <span class="text-yellow-400">*</span>
                         }
                         @for(int i = v.Puntuacion; i < 5; i++)
                         {
-                            <span class="text-gray-300">?</span>
+                            <span class="text-gray-300">*</span>
                         }
                     </td>
                     <td class="px-6 py-3 max-w-xs truncate">@v.Comentario</td>
@@ -58,7 +58,7 @@
     </table>
 </section>
 
-@* MODAL VALORACIÓN *@
+@* MODAL VALORACIÓN ---- *@
 <div id="modalValoracion" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-md p-6">
         <h2 class="text-2xl font-black text-gray-900 mb-4">Cambiar Visibilidad</h2>
