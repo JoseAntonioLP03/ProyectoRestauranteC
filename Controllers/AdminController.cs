@@ -53,6 +53,7 @@ namespace ProyectoRestauranteC_.Controllers
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Home");
 
+            ViewBag.Categorias = await context.Categorias.ToListAsync();
             var productos = await context.Productos.ToListAsync();
             return View(productos);
         }
@@ -859,3 +860,4 @@ namespace ProyectoRestauranteC_.Controllers
         }
     }
 }
+
