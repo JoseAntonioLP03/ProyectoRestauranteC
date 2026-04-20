@@ -64,8 +64,8 @@
             <input type="hidden" id="galeriaId" value="0">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">URL Imagen</label>
-                    <input type="text" id="galeriaUrl" class="w-full px-4 py-2 border border-gray-300 rounded-lg" maxlength="255" required>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Imagen</label>
+                    <input type="file" id="galeriaImagen" class="w-full px-4 py-2 border border-gray-300 rounded-lg" accept="image/*">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Descripción</label>
@@ -102,7 +102,7 @@
 <script>
 function abrirModalGaleria(id = 0, url = '', descripcion = '', tipo = 'Local', activa = true) {
     document.getElementById('galeriaId').value = id;
-    document.getElementById('galeriaUrl').value = url;
+    document.getElementById('galeriaImagen').value = '';
     document.getElementById('galeriaDescripcion').value = descripcion;
     document.getElementById('galeriaTipo').value = tipo;
     document.getElementById('galeriaActiva').checked = activa;
@@ -118,24 +118,26 @@ function cerrarModalGaleria() {
 document.getElementById('formGaleria').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('galeriaId').value;
-    const url = document.getElementById('galeriaUrl').value;
+    const imagenInput = document.getElementById('galeriaImagen');
     const descripcion = document.getElementById('galeriaDescripcion').value;
     const tipo = document.getElementById('galeriaTipo').value;
     const activa = document.getElementById('galeriaActiva').checked;
 
     const endpoint = id == 0 ? '/Admin/CreateGaleria' : '/Admin/UpdateGaleria';
-    const params = new URLSearchParams();
-    if (id != 0) params.append('id', id);
-    params.append('urlImagen', url);
-    params.append('descripcion', descripcion);
-    params.append('tipo', tipo);
-    params.append('activa', activa);
+    const formData = new FormData();
+    if (id != 0) formData.append('id', id);
+    formData.append('descripcion', descripcion);
+    formData.append('tipo', tipo);
+    formData.append('activa', activa);
+    
+    if (imagenInput.files.length > 0) {
+        formData.append('imagenFile', imagenInput.files[0]);
+    }
 
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params
+            body: formData
         });
         const data = await response.json();
         Swal.fire({

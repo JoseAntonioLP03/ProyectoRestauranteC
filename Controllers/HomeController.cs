@@ -10,30 +10,22 @@ namespace ProyectoRestauranteC_.Controllers
     public class HomeController : Controller
     {
         private readonly RepositoryUsuarios repoUsuarios;
-        private readonly RestauranteContext context;
+        private readonly RepositoryHome repoHome;
 
-        public HomeController(RepositoryUsuarios repoUsuarios, RestauranteContext context)
+        public HomeController(RepositoryUsuarios repoUsuarios, RepositoryHome repoHome)
         {
             this.repoUsuarios = repoUsuarios;
-            this.context = context;
+            this.repoHome = repoHome;
         }
 
         public async Task<IActionResult> Index()
         {
             // Obtener datos reales de la base de datos
-            var totalProductos = await context.Productos.Where(p => p.Disponible).CountAsync();
-            var totalPedidos = await context.Pedidos.CountAsync();
+            var totalProductos = await repoHome.GetTotalProductosAsync();
+            var totalPedidos = await repoHome.GetTotalPedidosAsync();
             
             // Calcular valoración media
-            var valoraciones = await context.Valoraciones
-                .Where(v => v.Visible)
-                .ToListAsync();
-            
-            var valoracionMedia = valoraciones.Any() 
-                ? Math.Round(valoraciones.Average(v => v.Puntuacion), 1) 
-                : 4.8;
-            
-            var totalValoraciones = valoraciones.Count;
+            var (valoracionMedia, totalValoraciones) = await repoHome.GetEstadisticasValoracionesAsync();
 
             var stats = new
             {
@@ -69,41 +61,17 @@ namespace ProyectoRestauranteC_.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerImagenesGaleria(int index = 0)
         {
-            var total = await context.Galeria
-                .Where(g => g.Activa)
-                .CountAsync();
+            var (total, actual, imagen) = await repoHome.GetImagenGaleriaAsync(index);
 
             if (total == 0)
             {
                 return Json(new { total = 0, imagenes = new List<object>() });
             }
 
-            if (index < 0)
-            {
-                index = total - 1;
-            }
-            else if (index >= total)
-            {
-                index = 0;
-            }
-
-            var imagen = await context.Galeria
-                .Where(g => g.Activa)
-                .OrderBy(g => g.Id)
-                .Skip(index)
-                .Select(g => new
-                {
-                    id = g.Id,
-                    urlImagen = g.UrlImagen,
-                    descripcion = g.Descripcion,
-                    tipo = g.Tipo
-                })
-                .FirstOrDefaultAsync();
-
             return Json(new
             {
                 total,
-                actual = index,
+                actual,
                 imagen
             });
         }

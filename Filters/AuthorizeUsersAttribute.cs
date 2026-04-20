@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace ProyectoRestauranteC_.Filters
 {
-    public class AuthorizeUsersAttribute : ActionFilterAttribute
+    public class AuthorizeUsersAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         private readonly string _rol;
 
@@ -13,26 +14,32 @@ namespace ProyectoRestauranteC_.Filters
             _rol = rol;
         }
 
-        public override void OnActionExecuting(ActionExecutingContext context)
+        public void OnAuthorization(AuthorizationFilterContext context)
         {
-            if (!context.HttpContext.User.Identity!.IsAuthenticated)
+            var user = context.HttpContext.User;
+
+            if (user.Identity == null || user.Identity.IsAuthenticated == false)
             {
                 var tempDataFactory = context.HttpContext.RequestServices
                     .GetRequiredService<ITempDataDictionaryFactory>();
                 var tempData = tempDataFactory.GetTempData(context.HttpContext);
                 tempData["MostrarAlertaLogin"] = true;
 
-                context.Result = new RedirectToActionResult("Login", "Acceso", null);
+                context.Result = new RedirectToRouteResult(new RouteValueDictionary(
+                    new { controller = "Acceso", action = "Login" }
+                ));
                 return;
             }
-
-            if (!string.IsNullOrEmpty(_rol) && !context.HttpContext.User.IsInRole(_rol))
+            else
             {
-                context.Result = new RedirectToActionResult("Denegado", "Acceso", null);
-                return;
+                if (!string.IsNullOrEmpty(_rol) && !user.IsInRole(_rol))
+                {
+                    context.Result = new RedirectToRouteResult(new RouteValueDictionary(
+                        new { controller = "Acceso", action = "Denegado" }
+                    ));
+                    return;
+                }
             }
-
-            base.OnActionExecuting(context);
         }
     }
 }

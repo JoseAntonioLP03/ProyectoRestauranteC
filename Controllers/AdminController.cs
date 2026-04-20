@@ -3,16 +3,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProyectoRestauranteC_.Data;
 using ProyectoRestauranteC_.Models;
+using ProyectoRestauranteC_.Repositories;
 
 namespace ProyectoRestauranteC_.Controllers
 {
     public class AdminController : Controller
     {
         private readonly RestauranteContext context;
+        private readonly RepositoryAdmin repoAdmin;
 
-        public AdminController(RestauranteContext context)
+        public AdminController(RestauranteContext context, RepositoryAdmin repoAdmin)
         {
             this.context = context;
+            this.repoAdmin = repoAdmin;
         }
 
         private bool EsAdmin()
@@ -23,26 +26,14 @@ namespace ProyectoRestauranteC_.Controllers
         }
 
         [Authorize]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if (!EsAdmin())
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            var stats = new
-            {
-                TotalProductos = context.Productos.Count(),
-                TotalPedidos = context.Pedidos.Count(),
-                TotalUsuarios = context.Usuarios.Count(),
-                TotalValoraciones = context.Valoraciones.Count(),
-                TotalReservas = context.Reservas.Count(),
-                TotalCategorias = context.Categorias.Count(),
-                TotalCupones = context.Cupones.Count(),
-                TotalMesas = context.Mesas.Count(),
-                PedidosPendientes = context.Pedidos.Where(p => p.Estado == "PendientePago").Count(),
-                ReservasPendientes = context.Reservas.Where(r => r.Estado == "Pendiente").Count()
-            };
+            var stats = await repoAdmin.GetStatsAsync();
 
             return View(stats);
         }
@@ -53,14 +44,14 @@ namespace ProyectoRestauranteC_.Controllers
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Home");
 
-            ViewBag.Categorias = await context.Categorias.ToListAsync();
-            var productos = await context.Productos.ToListAsync();
+            ViewBag.Categorias = await repoAdmin.GetCategoriasAsync();
+            var productos = await repoAdmin.GetProductosAsync();
             return View(productos);
         }
 
         // PRODUCTOS - CREATE
         [HttpPost]
-        public async Task<IActionResult> CreateProducto(string nombre, string descripcion, decimal precio, string imagenUrl, int categoriaId, bool disponible)
+        public async Task<IActionResult> CreateProducto(string nombre, string descripcion, decimal precio, IFormFile? imagen, int categoriaId, bool disponible)
         {
             if (!EsAdmin()) return Unauthorized(new { success = false, message = "No autorizado" });
 
@@ -72,9 +63,16 @@ namespace ProyectoRestauranteC_.Controllers
                 if (precio <= 0)
                     return Json(new { success = false, message = "El precio debe ser mayor a 0" });
 
-                var categoria = await context.Categorias.FindAsync(categoriaId);
+                var categoria = await repoAdmin.GetCategoriaByIdAsync(categoriaId);
                 if (categoria == null)
                     return Json(new { success = false, message = "La categoría no existe" });
+
+                string imagenUrl = "/images/menu/default.jpg";
+                if (imagen != null)
+                {
+                    var uploadedPath = await repoAdmin.UploadImagenAsync(imagen);
+                    if (uploadedPath != null) imagenUrl = uploadedPath;
+                }
 
                 var producto = new Productos
                 {
@@ -87,8 +85,7 @@ namespace ProyectoRestauranteC_.Controllers
                     FechaCreacion = DateTime.Now
                 };
 
-                context.Productos.Add(producto);
-                await context.SaveChangesAsync();
+                await repoAdmin.CrearProductoAsync(producto);
 
                 return Json(new { success = true, message = "Producto creado exitosamente", id = producto.Id });
             }
@@ -100,13 +97,13 @@ namespace ProyectoRestauranteC_.Controllers
 
         // PRODUCTOS - UPDATE
         [HttpPost]
-        public async Task<IActionResult> UpdateProducto(int id, string nombre, string descripcion, decimal precio, string imagenUrl, int categoriaId, bool disponible)
+        public async Task<IActionResult> UpdateProducto(int id, string nombre, string descripcion, decimal precio, IFormFile? imagen, int categoriaId, bool disponible)
         {
             if (!EsAdmin()) return Unauthorized(new { success = false, message = "No autorizado" });
 
             try
             {
-                var producto = await context.Productos.FindAsync(id);
+                var producto = await repoAdmin.GetProductoByIdAsync(id);
                 if (producto == null) return Json(new { success = false, message = "Producto no encontrado" });
 
                 if (string.IsNullOrWhiteSpace(nombre) || nombre.Length > 150)
@@ -115,19 +112,23 @@ namespace ProyectoRestauranteC_.Controllers
                 if (precio <= 0)
                     return Json(new { success = false, message = "El precio debe ser mayor a 0" });
 
-                var categoria = await context.Categorias.FindAsync(categoriaId);
+                var categoria = await repoAdmin.GetCategoriaByIdAsync(categoriaId);
                 if (categoria == null)
                     return Json(new { success = false, message = "La categoría no existe" });
+
+                if (imagen != null)
+                {
+                    var uploadedPath = await repoAdmin.UploadImagenAsync(imagen);
+                    if (uploadedPath != null) producto.ImagenUrl = uploadedPath;
+                }
 
                 producto.Nombre = nombre;
                 producto.Descripcion = descripcion;
                 producto.Precio = precio;
-                producto.ImagenUrl = imagenUrl;
                 producto.CategoriaId = categoriaId;
                 producto.Disponible = disponible;
 
-                context.Productos.Update(producto);
-                await context.SaveChangesAsync();
+                await repoAdmin.UpdateProductoAsync(producto);
 
                 return Json(new { success = true, message = "Producto actualizado exitosamente" });
             }
@@ -144,11 +145,10 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var producto = await context.Productos.FindAsync(id);
+                var producto = await repoAdmin.GetProductoByIdAsync(id);
                 if (producto == null) return Json(new { success = false, message = "Producto no encontrado" });
 
-                context.Productos.Remove(producto);
-                await context.SaveChangesAsync();
+                await repoAdmin.DeleteProductoAsync(producto);
 
                 return Json(new { success = true, message = "Producto eliminado exitosamente" });
             }
@@ -164,7 +164,7 @@ namespace ProyectoRestauranteC_.Controllers
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Home");
 
-            var categorias = await context.Categorias.ToListAsync();
+            var categorias = await repoAdmin.GetCategoriasAsync();
             return View(categorias);
         }
 
@@ -186,8 +186,7 @@ namespace ProyectoRestauranteC_.Controllers
                     Activo = activo
                 };
 
-                context.Categorias.Add(categoria);
-                await context.SaveChangesAsync();
+                await repoAdmin.CrearCategoriaAsync(categoria);
 
                 return Json(new { success = true, message = "Categoría creada exitosamente", id = categoria.Id });
             }
@@ -205,7 +204,7 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var categoria = await context.Categorias.FindAsync(id);
+                var categoria = await repoAdmin.GetCategoriaByIdAsync(id);
                 if (categoria == null) return Json(new { success = false, message = "Categoría no encontrada" });
 
                 if (string.IsNullOrWhiteSpace(nombre) || nombre.Length > 100)
@@ -215,8 +214,7 @@ namespace ProyectoRestauranteC_.Controllers
                 categoria.Descripcion = descripcion;
                 categoria.Activo = activo;
 
-                context.Categorias.Update(categoria);
-                await context.SaveChangesAsync();
+                await repoAdmin.UpdateCategoriaAsync(categoria);
 
                 return Json(new { success = true, message = "Categoría actualizada exitosamente" });
             }
@@ -233,11 +231,10 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var categoria = await context.Categorias.FindAsync(id);
+                var categoria = await repoAdmin.GetCategoriaByIdAsync(id);
                 if (categoria == null) return Json(new { success = false, message = "Categoría no encontrada" });
 
-                context.Categorias.Remove(categoria);
-                await context.SaveChangesAsync();
+                await repoAdmin.DeleteCategoriaAsync(categoria);
 
                 return Json(new { success = true, message = "Categoría eliminada exitosamente" });
             }
@@ -253,7 +250,7 @@ namespace ProyectoRestauranteC_.Controllers
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Home");
 
-            var usuarios = await context.Usuarios.ToListAsync();
+            var usuarios = await repoAdmin.GetUsuariosAsync();
             return View(usuarios);
         }
 
@@ -264,13 +261,12 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var usuario = await context.Usuarios.FindAsync(id);
+                var usuario = await repoAdmin.GetUsuarioByIdAsync(id);
                 if (usuario == null) return Json(new { success = false, message = "Usuario no encontrado" });
 
                 usuario.Activo = activo;
 
-                context.Usuarios.Update(usuario);
-                await context.SaveChangesAsync();
+                await repoAdmin.UpdateUsuarioAsync(usuario);
 
                 return Json(new { success = true, message = "Usuario actualizado exitosamente" });
             }
@@ -287,11 +283,10 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var usuario = await context.Usuarios.FindAsync(id);
+                var usuario = await repoAdmin.GetUsuarioByIdAsync(id);
                 if (usuario == null) return Json(new { success = false, message = "Usuario no encontrado" });
 
-                context.Usuarios.Remove(usuario);
-                await context.SaveChangesAsync();
+                await repoAdmin.DeleteUsuarioAsync(usuario);
 
                 return Json(new { success = true, message = "Usuario eliminado exitosamente" });
             }
@@ -307,7 +302,7 @@ namespace ProyectoRestauranteC_.Controllers
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Home");
 
-            var pedidos = await context.Pedidos.ToListAsync();
+            var pedidos = await repoAdmin.GetPedidosAsync();
             return View(pedidos);
         }
 
@@ -322,13 +317,12 @@ namespace ProyectoRestauranteC_.Controllers
                 if (!estadosValidos.Contains(estado))
                     return Json(new { success = false, message = "Estado inválido. Debe ser uno de: PendientePago, EnPreparacion, Listo, Entregado, Cancelado" });
 
-                var pedido = await context.Pedidos.FindAsync(id);
+                var pedido = await repoAdmin.GetPedidoByIdAsync(id);
                 if (pedido == null) return Json(new { success = false, message = "Pedido no encontrado" });
 
                 pedido.Estado = estado;
 
-                context.Pedidos.Update(pedido);
-                await context.SaveChangesAsync();
+                await repoAdmin.UpdatePedidoAsync(pedido);
 
                 return Json(new { success = true, message = "Pedido actualizado exitosamente" });
             }
@@ -345,15 +339,10 @@ namespace ProyectoRestauranteC_.Controllers
 
             try
             {
-                var pedido = await context.Pedidos.FindAsync(id);
+                var pedido = await repoAdmin.GetPedidoByIdAsync(id);
                 if (pedido == null) return Json(new { success = false, message = "Pedido no encontrado" });
 
-                // Eliminar detalles del pedido primero
-                var detalles = await context.DetallesPedido.Where(d => d.PedidoId == id).ToListAsync();
-                context.DetallesPedido.RemoveRange(detalles);
-
-                context.Pedidos.Remove(pedido);
-                await context.SaveChangesAsync();
+                await repoAdmin.DeletePedidoAsync(pedido, id);
 
                 return Json(new { success = true, message = "Pedido eliminado exitosamente" });
             }
@@ -736,14 +725,18 @@ namespace ProyectoRestauranteC_.Controllers
 
         // GALERÍAS - CREATE
         [HttpPost]
-        public async Task<IActionResult> CreateGaleria(string urlImagen, string descripcion, string tipo, bool activa = true)
+        public async Task<IActionResult> CreateGaleria(IFormFile? imagenFile, string descripcion, string tipo, bool activa = true)
         {
             if (!EsAdmin()) return Unauthorized(new { success = false, message = "No autorizado" });
 
             try
             {
-                if (string.IsNullOrWhiteSpace(urlImagen) || urlImagen.Length > 255)
-                    return Json(new { success = false, message = "La URL debe tener entre 1 y 255 caracteres" });
+                string urlImagen = "/images/galeria/default.jpg";
+                if (imagenFile != null)
+                {
+                    var uploadedPath = await repoAdmin.UploadImagenAsync(imagenFile, "galeria");
+                    if (uploadedPath != null) urlImagen = uploadedPath;
+                }
 
                 if (tipo != "Local" && tipo != "Plato")
                     return Json(new { success = false, message = "El tipo debe ser 'Local' o 'Plato'" });
@@ -769,7 +762,7 @@ namespace ProyectoRestauranteC_.Controllers
 
         // GALERÍAS - UPDATE
         [HttpPost]
-        public async Task<IActionResult> UpdateGaleria(int id, string urlImagen, string descripcion, string tipo, bool activa)
+        public async Task<IActionResult> UpdateGaleria(int id, IFormFile? imagenFile, string descripcion, string tipo, bool activa)
         {
             if (!EsAdmin()) return Unauthorized(new { success = false, message = "No autorizado" });
 
@@ -778,13 +771,15 @@ namespace ProyectoRestauranteC_.Controllers
                 var imagen = await context.Galeria.FindAsync(id);
                 if (imagen == null) return Json(new { success = false, message = "Imagen no encontrada" });
 
-                if (string.IsNullOrWhiteSpace(urlImagen) || urlImagen.Length > 255)
-                    return Json(new { success = false, message = "La URL debe tener entre 1 y 255 caracteres" });
-
                 if (tipo != "Local" && tipo != "Plato")
                     return Json(new { success = false, message = "El tipo debe ser 'Local' o 'Plato'" });
 
-                imagen.UrlImagen = urlImagen;
+                if (imagenFile != null)
+                {
+                    var uploadedPath = await repoAdmin.UploadImagenAsync(imagenFile, "galeria");
+                    if (uploadedPath != null) imagen.UrlImagen = uploadedPath;
+                }
+
                 imagen.Descripcion = descripcion;
                 imagen.Tipo = tipo;
                 imagen.Activa = activa;

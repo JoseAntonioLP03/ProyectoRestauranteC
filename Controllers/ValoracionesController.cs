@@ -1,27 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
+using ProyectoRestauranteC_.Repositories;
 using ProyectoRestauranteC_.Models;
 
 namespace ProyectoRestauranteC_.Controllers
 {
     public class ValoracionesController : Controller
     {
-        private readonly RestauranteContext context;
+        private readonly RepositoryValoraciones _repo;
 
-        public ValoracionesController(RestauranteContext context)
+        public ValoracionesController(RepositoryValoraciones repo)
         {
-            this.context = context;
+            _repo = repo;
         }
 
         public async Task<IActionResult> Index()
         {
-            var valoraciones = await context.Valoraciones
-                .Include(v => v.Usuario)
-                .Where(v => v.Visible)
-                .OrderByDescending(v => v.Fecha)
-                .ToListAsync();
-
+            var valoraciones = await _repo.GetValoracionesVisiblesAsync();
             return View(valoraciones);
         }
 
@@ -60,17 +54,7 @@ namespace ProyectoRestauranteC_.Controllers
                 return Unauthorized(new { message = "Error al obtener tu información de usuario" });
             }
 
-            var valoracion = new Valoracion
-            {
-                UsuarioId = usuarioId,
-                Puntuacion = calificacion,
-                Comentario = comentario,
-                Fecha = DateTime.Now,
-                Visible = true
-            };
-
-            context.Valoraciones.Add(valoracion);
-            await context.SaveChangesAsync();
+            await _repo.CrearValoracionAsync(usuarioId, calificacion, comentario);
 
             return Json(new { success = true, message = "Valoración guardada exitosamente" });
         }

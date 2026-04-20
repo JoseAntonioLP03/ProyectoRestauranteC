@@ -12,15 +12,22 @@ builder.Services.AddDbContext<RestauranteContext>(options =>
 
 builder.Services.AddTransient<RepositoryUsuarios>();
 builder.Services.AddTransient<RepositoryReservas>();
+builder.Services.AddTransient<RepositoryValoraciones>();
+builder.Services.AddTransient<RepositoryHome>();
+builder.Services.AddTransient<RepositoryAdmin>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Acceso/Login";
-        options.AccessDeniedPath = "/Acceso/Denegado";
-        options.ExpireTimeSpan = TimeSpan.FromHours(2);
-    });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;  
+}).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/Acceso/Login";
+    options.AccessDeniedPath = "/Acceso/Denegado";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+});
 
 builder.Services.AddAuthorization();
 
