@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
 using ProyectoRestauranteC_.Repositories;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<RestauranteContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("RestauranteDB")));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient("ApiTopMeal", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiTopMeal:BaseUrl"]!);
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 builder.Services.AddTransient<RepositoryUsuarios>();
 builder.Services.AddTransient<RepositoryReservas>();

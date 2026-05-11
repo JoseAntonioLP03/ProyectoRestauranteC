@@ -1,98 +1,90 @@
-using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
+using Microsoft.AspNetCore.Http;
 using ProyectoRestauranteC_.Models;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace ProyectoRestauranteC_.Repositories
 {
     public class RepositoryReservas
     {
-        private readonly RestauranteContext context;
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public RepositoryReservas(RestauranteContext context)
+        public RepositoryReservas(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            this.context = context;
+            this.httpClientFactory = httpClientFactory;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<Mesa>> GetMesasDisponiblesAsync(DateTime fechaTurno, int numPersonas)
         {
-            // Mesas activas que tengan capacidad suficiente
-            var mesasValidas = await this.context.Mesas
-                .Where(m => m.Activa && m.Capacidad >= numPersonas)
-                .ToListAsync();
-
-            // Tiempo estimado de reserva: 90 minutos
-            var inicioMargen = fechaTurno.AddMinutes(-89);
-            var finMargen = fechaTurno.AddMinutes(89);
-
-            // Reservas confirmadas o pendientes para la fecha y turno indicados
-            var reservasEnTurno = await this.context.Reservas
-                .Where(r => r.Estado != "Cancelada" && r.Estado != "Expirada")
-                .Where(r => r.FechaReserva >= inicioMargen && r.FechaReserva <= finMargen)
-                .Select(r => r.MesaId)
-                .ToListAsync();
-
-            // Filtramos las mesas validas quitando las que ya tienen reserva en ese turno
-            var mesasDisponibles = mesasValidas.Where(m => !reservasEnTurno.Contains(m.Id)).ToList();
-
-            return mesasDisponibles;
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var fechaParam = Uri.EscapeDataString(fechaTurno.ToString("o", CultureInfo.InvariantCulture));
+            return await client.GetFromJsonAsync<List<Mesa>>(
+                       $"api/Reservas/MesasDisponibles/{fechaParam}/{numPersonas}")
+                   ?? new List<Mesa>();
         }
 
         public async Task<List<Mesa>> GetAllMesasAsync()
         {
-            return await this.context.Mesas.Where(m => m.Activa).ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            return await client.GetFromJsonAsync<List<Mesa>>("api/Reservas/Mesas")
+                   ?? new List<Mesa>();
         }
         
         public async Task<List<int>> GetMesasOcupadasEnTurnoAsync(DateTime fechaTurno)
         {
-            // Tiempo estimado de reserva: 90 minutos
-            var inicioMargen = fechaTurno.AddMinutes(-89);
-            var finMargen = fechaTurno.AddMinutes(89);
-
-            return await this.context.Reservas
-                .Where(r => r.Estado != "Cancelada" && r.Estado != "Expirada")
-                .Where(r => r.FechaReserva >= inicioMargen && r.FechaReserva <= finMargen)
-                .Select(r => r.MesaId)
-                .ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var fechaParam = Uri.EscapeDataString(fechaTurno.ToString("o", CultureInfo.InvariantCulture));
+            return await client.GetFromJsonAsync<List<int>>(
+                       $"api/Reservas/MesasOcupadas/{fechaParam}")
+                   ?? new List<int>();
         }
 
         public async Task<Reserva> CrearReservaAsync(int usuarioId, int mesaId, DateTime fechaTurno, int numPersonas)
         {
-            Reserva reserva = new Reserva
+            var client = CreateAuthorizedClient();
+            var response = await client.PostAsJsonAsync("api/Reservas/CrearReserva", new
             {
-                UsuarioId = usuarioId,
                 MesaId = mesaId,
-                FechaReserva = fechaTurno,
-                NumeroPersonas = numPersonas,
-                Estado = "Confirmada", // O "Pendiente" según tu lógica de negocio
-                FechaCreacion = DateTime.Now,
-                FechaConfirmacion = DateTime.Now
-            };
+                FechaTurno = fechaTurno,
+                NumPersonas = numPersonas
+            });
 
-            this.context.Reservas.Add(reserva);
-            await this.context.SaveChangesAsync();
-
-            return reserva;
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<Reserva>())!;
         }
 
         public async Task<List<Reserva>> GetReservasByUsuarioAsync(int usuarioId)
         {
-            return await this.context.Reservas
-                .Include(r => r.Mesa)
-                .Where(r => r.UsuarioId == usuarioId)
-                .OrderByDescending(r => r.FechaReserva)
-                .ToListAsync();
+            var client = CreateAuthorizedClient();
+            var response = await client.GetAsync("api/Reservas/ReservasUsuario");
+            if (!response.IsSuccessStatusCode)
+            {
+                return new List<Reserva>();
+            }
+
+            return await response.Content.ReadFromJsonAsync<List<Reserva>>() ?? new List<Reserva>();
         }
         
         public async Task CancelarReservaAsync(int reservaId, int usuarioId)
         {
-            var reserva = await this.context.Reservas
-                .FirstOrDefaultAsync(r => r.Id == reservaId && r.UsuarioId == usuarioId);
-                
-            if (reserva != null)
+            var client = CreateAuthorizedClient();
+            var response = await client.DeleteAsync($"api/Reservas/CancelarReserva/{reservaId}");
+            response.EnsureSuccessStatusCode();
+        }
+
+        private HttpClient CreateAuthorizedClient()
+        {
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var token = this.httpContextAccessor.HttpContext?.Session.GetString("API_TOKEN");
+            if (!string.IsNullOrWhiteSpace(token))
             {
-                reserva.Estado = "Cancelada";
-                await this.context.SaveChangesAsync();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
+
+            return client;
         }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Models;
+using NugetTopMeal.Models;
 
-
-namespace ProyectoRestauranteC_.Data
+namespace NugetTopMeal.Data
 {
     public class RestauranteContext : DbContext
     {

@@ -24,9 +24,10 @@ namespace ProyectoRestauranteC_.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            Usuario? usuario = await this.repo.ExisteUsuarioAsync(email, password);
+            var resultado = await this.repo.LoginAsync(email, password);
+            Usuario? usuario = resultado.Usuario;
 
-            if (usuario != null)
+            if (usuario != null && !string.IsNullOrWhiteSpace(resultado.Token))
             {
                 var claims = new List<Claim>
                 {
@@ -45,6 +46,7 @@ namespace ProyectoRestauranteC_.Controllers
                     IsPersistent = true
                 };
 
+                HttpContext.Session.SetString("API_TOKEN", resultado.Token);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
                 return RedirectToAction("Index", "Home");
@@ -72,6 +74,7 @@ namespace ProyectoRestauranteC_.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             HttpContext.Session.Remove("CARRITO");
+            HttpContext.Session.Remove("API_TOKEN");
             return RedirectToAction("Index", "Home");
         }
 

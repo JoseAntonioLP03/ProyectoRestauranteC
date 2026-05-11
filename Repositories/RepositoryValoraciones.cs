@@ -1,40 +1,50 @@
-using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
+using Microsoft.AspNetCore.Http;
 using ProyectoRestauranteC_.Models;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace ProyectoRestauranteC_.Repositories
 {
     public class RepositoryValoraciones
     {
-        private readonly RestauranteContext _context;
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public RepositoryValoraciones(RestauranteContext context)
+        public RepositoryValoraciones(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            _context = context;
+            this.httpClientFactory = httpClientFactory;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<Valoracion>> GetValoracionesVisiblesAsync()
         {
-            return await _context.Valoraciones
-                .Include(v => v.Usuario)
-                .Where(v => v.Visible)
-                .OrderByDescending(v => v.Fecha)
-                .ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            return await client.GetFromJsonAsync<List<Valoracion>>("api/Valoraciones/ValoracionesVisibles")
+                   ?? new List<Valoracion>();
         }
 
         public async Task CrearValoracionAsync(int usuarioId, int calificacion, string comentario)
         {
-            var valoracion = new Valoracion
+            var client = CreateAuthorizedClient();
+            var response = await client.PostAsJsonAsync("api/Valoraciones/CrearValoracion", new
             {
-                UsuarioId = usuarioId,
-                Puntuacion = calificacion,
-                Comentario = comentario,
-                Fecha = DateTime.Now,
-                Visible = true
-            };
+                Calificacion = calificacion,
+                Comentario = comentario
+            });
 
-            _context.Valoraciones.Add(valoracion);
-            await _context.SaveChangesAsync();
+            response.EnsureSuccessStatusCode();
+        }
+
+        private HttpClient CreateAuthorizedClient()
+        {
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var token = this.httpContextAccessor.HttpContext?.Session.GetString("API_TOKEN");
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            return client;
         }
     }
 }

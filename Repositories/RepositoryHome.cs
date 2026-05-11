@@ -1,74 +1,93 @@
-using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace ProyectoRestauranteC_.Repositories
 {
     public class RepositoryHome
     {
-        private readonly RestauranteContext _context;
+        private readonly IHttpClientFactory httpClientFactory;
 
-        public RepositoryHome(RestauranteContext context)
+        public RepositoryHome(IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            this.httpClientFactory = httpClientFactory;
         }
 
         public async Task<int> GetTotalProductosAsync()
         {
-            return await _context.Productos.Where(p => p.Disponible).CountAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.GetAsync("api/Home/TotalProductos");
+            if (!response.IsSuccessStatusCode)
+            {
+                return 0;
+            }
+
+            return await response.Content.ReadFromJsonAsync<int>();
         }
 
         public async Task<int> GetTotalPedidosAsync()
         {
-            return await _context.Pedidos.CountAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.GetAsync("api/Home/TotalPedidos");
+            if (!response.IsSuccessStatusCode)
+            {
+                return 0;
+            }
+
+            return await response.Content.ReadFromJsonAsync<int>();
         }
 
         public async Task<(double ValoracionMedia, int TotalValoraciones)> GetEstadisticasValoracionesAsync()
         {
-            var valoraciones = await _context.Valoraciones
-                .Where(v => v.Visible)
-                .ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.GetAsync("api/Home/EstadisticasValoraciones");
+            if (!response.IsSuccessStatusCode)
+            {
+                return (4.8, 0);
+            }
 
-            var valoracionMedia = valoraciones.Any() 
-                ? Math.Round(valoraciones.Average(v => v.Puntuacion), 1) 
-                : 4.8;
+            var payload = await response.Content.ReadFromJsonAsync<EstadisticasValoracionesResponse>();
+            if (payload == null)
+            {
+                return (4.8, 0);
+            }
 
-            return (valoracionMedia, valoraciones.Count);
+            return (payload.ValoracionMedia, payload.TotalValoraciones);
         }
 
         public async Task<(int Total, int Actual, object? Imagen)> GetImagenGaleriaAsync(int index)
         {
-            var total = await _context.Galeria
-                .Where(g => g.Activa)
-                .CountAsync();
-
-            if (total == 0)
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.GetAsync($"api/Home/ImagenGaleria/{index}");
+            if (!response.IsSuccessStatusCode)
             {
                 return (0, 0, null);
             }
 
-            if (index < 0)
+            var payload = await response.Content.ReadFromJsonAsync<ImagenGaleriaResponse>();
+            if (payload == null)
             {
-                index = total - 1;
-            }
-            else if (index >= total)
-            {
-                index = 0;
+                return (0, 0, null);
             }
 
-            var imagen = await _context.Galeria
-                .Where(g => g.Activa)
-                .OrderBy(g => g.Id)
-                .Skip(index)
-                .Select(g => new
-                {
-                    id = g.Id,
-                    urlImagen = g.UrlImagen,
-                    descripcion = g.Descripcion,
-                    tipo = g.Tipo
-                })
-                .FirstOrDefaultAsync();
+            object? imagen = payload.Imagen.ValueKind == JsonValueKind.Null
+                || payload.Imagen.ValueKind == JsonValueKind.Undefined
+                ? null
+                : payload.Imagen;
 
-            return (total, index, imagen);
+            return (payload.Total, payload.Actual, imagen);
+        }
+
+        private class EstadisticasValoracionesResponse
+        {
+            public double ValoracionMedia { get; set; }
+            public int TotalValoraciones { get; set; }
+        }
+
+        private class ImagenGaleriaResponse
+        {
+            public int Total { get; set; }
+            public int Actual { get; set; }
+            public JsonElement Imagen { get; set; }
         }
     }
 }

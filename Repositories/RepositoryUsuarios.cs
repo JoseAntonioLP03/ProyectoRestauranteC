@@ -1,143 +1,164 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProyectoRestauranteC_.Data;
-using ProyectoRestauranteC_.Helpers;
+﻿using Microsoft.AspNetCore.Http;
 using ProyectoRestauranteC_.Models;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace ProyectoRestauranteC_.Repositories
 {
     public class RepositoryUsuarios
     {
-        private RestauranteContext context;
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public RepositoryUsuarios(RestauranteContext context)
+        public RepositoryUsuarios(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            this.context = context;
+            this.httpClientFactory = httpClientFactory;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public async Task RegisterUsuarioAsync(string nombre, string email, string password, string telefono, string direccion)
         {
-            //Creamos el objeto Usuario 
-            Usuario user = new Usuario();
-            user.Nombre = nombre;
-            user.Email = email;
-            user.Password = password;
-            user.Telefono = telefono;
-            user.Direccion = direccion;
-            user.Rol = "Cliente";
-            user.FechaRegistro = DateTime.Now;
-            user.Activo = true;
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.PostAsJsonAsync("api/Usuarios/Register", new
+            {
+                Nombre = nombre,
+                Email = email,
+                Password = password,
+                Telefono = telefono,
+                Direccion = direccion
+            });
 
-            this.context.Usuarios.Add(user);
-            await this.context.SaveChangesAsync();
-
-            UsuarioSeguridad seguridad = new UsuarioSeguridad();
-            seguridad.UsuarioId = user.Id;
-
-            string salt = HelperTool.GenerateSalt();
-            seguridad.Salt = salt;
-
-            byte[] hashBytes = HelperEncriptar.EncryptPassword(password, salt);
-            seguridad.PasswordHash = Convert.ToBase64String(hashBytes);
-
-            this.context.UsuariosSeguridad.Add(seguridad);
-            await this.context.SaveChangesAsync();
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task<Usuario?> GetUsuarioByIdAsync(int id)
         {
-            return await this.context.Usuarios.FindAsync(id);
+            var client = CreateAuthorizedClient();
+            var response = await client.GetAsync("api/Usuarios/Usuario");
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<Usuario>();
         }
 
         public async Task<Cupon?> ValidarCuponAsync(string codigo)
         {
-            return await this.context.Cupones.FirstOrDefaultAsync(c =>
-                c.Codigo == codigo &&
-                c.Activo &&
-                c.VecesUsado < c.UsoMaximo &&
-                c.FechaInicio <= DateTime.Now &&
-                c.FechaFin >= DateTime.Now);
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.GetAsync($"api/Usuarios/ValidarCupon/{codigo}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<Cupon>();
         }
 
         public async Task<List<Cupon>> GetCuponesDisponiblesAsync()
         {
-            return await this.context.Cupones
-                .Where(c => c.Activo && c.VecesUsado < c.UsoMaximo &&
-                            c.FechaInicio <= DateTime.Now && c.FechaFin >= DateTime.Now)
-                .ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            return await client.GetFromJsonAsync<List<Cupon>>("api/Usuarios/CuponesDisponibles")
+                   ?? new List<Cupon>();
         }
 
         public async Task<Pedido> CrearPedidoAsync(int usuarioId, List<ItemCarrito> items,
             decimal subtotal, decimal descuento, decimal total, string? direccionEntrega, int? cuponId, string tipoPedido = "Domicilio")
         {
-            var pedido = new Pedido
+            var client = CreateAuthorizedClient();
+            var response = await client.PostAsJsonAsync("api/Usuarios/CrearPedido", new
             {
-                UsuarioId = usuarioId,
-                FechaPedido = DateTime.Now,
-                TipoPedido = tipoPedido,
-                Estado = "PendientePago",
+                Items = items,
                 Subtotal = subtotal,
                 Descuento = descuento,
                 Total = total,
                 DireccionEntrega = direccionEntrega,
                 CuponId = cuponId,
-                Detalles = items.Select(item => new DetallePedido
-                {
-                    ProductoId = item.Id,
-                    Cantidad = item.Cantidad,
-                    PrecioUnitario = item.Precio
-                }).ToList()
-            };
+                TipoPedido = tipoPedido
+            });
 
-            this.context.Pedidos.Add(pedido);
-
-            if (cuponId.HasValue)
-            {
-                var cupon = await this.context.Cupones.FindAsync(cuponId.Value);
-                if (cupon != null) cupon.VecesUsado++;
-            }
-
-            await this.context.SaveChangesAsync();
-            return pedido;
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<Pedido>())!;
         }
 
         public async Task<Pedido?> GetPedidoConDetallesAsync(int pedidoId, int usuarioId)
         {
-            return await this.context.Pedidos
-                .Include(p => p.Detalles)
-                    .ThenInclude(d => d.Producto)
-                .FirstOrDefaultAsync(p => p.Id == pedidoId && p.UsuarioId == usuarioId);
-        }
-
-        public async Task<List<Pedido>> GetPedidosByUsuarioAsync(int usuarioId)
-        {
-            return await this.context.Pedidos
-                .Include(p => p.Detalles)
-                    .ThenInclude(d => d.Producto)
-                .Where(p => p.UsuarioId == usuarioId)
-                .OrderByDescending(p => p.FechaPedido)
-                .ToListAsync();
-        }
-
-        public async Task<Usuario?> ExisteUsuarioAsync(string email, string password)
-        {
-            Usuario? user = await this.context.Usuarios
-                .Include(u => u.Seguridad)
-                .FirstOrDefaultAsync(u => u.Email == email);
-
-            if (user == null || user.Seguridad == null)
+            var client = CreateAuthorizedClient();
+            var response = await client.GetAsync($"api/Usuarios/Pedido/{pedidoId}");
+            if (!response.IsSuccessStatusCode)
             {
                 return null;
             }
 
-            string salt = user.Seguridad.Salt;
-            string hashGuardado = user.Seguridad.PasswordHash;
-            byte[] tempHashBytes = HelperEncriptar.EncryptPassword(password, salt);
-            string hashActual = Convert.ToBase64String(tempHashBytes);
-            if (hashActual == hashGuardado)
+            return await response.Content.ReadFromJsonAsync<Pedido>();
+        }
+
+        public async Task<List<Pedido>> GetPedidosByUsuarioAsync(int usuarioId)
+        {
+            var client = CreateAuthorizedClient();
+            var response = await client.GetAsync("api/Usuarios/PedidosUsuario");
+            if (!response.IsSuccessStatusCode)
             {
-                return user;
+                return new List<Pedido>();
             }
-            return null;
+
+            return await response.Content.ReadFromJsonAsync<List<Pedido>>() ?? new List<Pedido>();
+        }
+
+        public async Task<Usuario?> ExisteUsuarioAsync(string email, string password)
+        {
+            var result = await LoginAsync(email, password);
+            return result.Usuario;
+        }
+
+        public async Task<(Usuario? Usuario, string? Token)> LoginAsync(string email, string password)
+        {
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var response = await client.PostAsJsonAsync("api/Auth/Login", new
+            {
+                Email = email,
+                Password = password
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return (null, null);
+            }
+
+            var payload = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (payload?.Response == null)
+            {
+                return (null, null);
+            }
+
+            var usuarioClient = CreateAuthorizedClient(payload.Response);
+            var usuarioResponse = await usuarioClient.GetAsync("api/Usuarios/Usuario");
+            if (!usuarioResponse.IsSuccessStatusCode)
+            {
+                return (null, null);
+            }
+
+            var usuario = await usuarioResponse.Content.ReadFromJsonAsync<Usuario>();
+            return (usuario, payload.Response);
+        }
+
+        private HttpClient CreateAuthorizedClient(string? token = null)
+        {
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            var tokenValue = token ?? this.httpContextAccessor.HttpContext?.Session.GetString("API_TOKEN");
+            if (!string.IsNullOrWhiteSpace(tokenValue))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValue);
+            }
+
+            return client;
+        }
+
+        private class LoginResponse
+        {
+            [JsonPropertyName("response")]
+            public string? Response { get; set; }
         }
     }
 }

@@ -1,24 +1,22 @@
-﻿using ProyectoRestauranteC_.Data;
-using ProyectoRestauranteC_.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using ProyectoRestauranteC_.Models;
+using System.Net.Http.Json;
 
 namespace ProyectoRestauranteC_.Repositories
 {
     public class MenuRepository : IMenuRepository
     {
-        private readonly RestauranteContext context;
+        private readonly IHttpClientFactory httpClientFactory;
 
-        public MenuRepository(RestauranteContext context)
+        public MenuRepository(IHttpClientFactory httpClientFactory)
         {
-            this.context = context;
+            this.httpClientFactory = httpClientFactory;
         }
 
         public async Task<IEnumerable<Categoria>> GetMenuCompletoAsync()
         {
-            return await context.Categorias
-                .Include(c => c.Productos) 
-                .Where(c => c.Activo)
-                .ToListAsync();
+            var client = this.httpClientFactory.CreateClient("ApiTopMeal");
+            return await client.GetFromJsonAsync<List<Categoria>>("api/Menu/MenuCompleto")
+                   ?? new List<Categoria>();
         }
     }
 }
